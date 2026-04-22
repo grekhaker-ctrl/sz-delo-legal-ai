@@ -10,7 +10,7 @@ from pathlib import Path
 import pypdf
 import pdfplumber
 from docx import Document
-# import pytesseract
+# import pytesseract  # Отключено для Streamlit Cloud
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -111,12 +111,9 @@ class DocumentParser:
             return ""
     
     def _ocr_file(self, file_path: str) -> str:
-        """OCR для сканов и изображений"""
-        try:
-            # OCR временно отключён для Streamlit Cloud
-            # Для полноценной OCR нужен Tesseract (устанавливается на VPS)
-            logger.warning("OCR недоступен на Streamlit Cloud")
-            return "OCR недоступен. Пожалуйста, используйте текстовые PDF или DOCX файлы."
+        """OCR для сканов - отключён на Streamlit Cloud"""
+        logger.warning("OCR недоступен на Streamlit Cloud. Используйте текстовые PDF/DOCX.")
+        return "OCR недоступен. Пожалуйста, используйте файлы с текстовым слоем (не сканы)."
     
         except Exception as e:
             logger.error(f"OCR error: {e}")
