@@ -113,7 +113,7 @@ class DocumentParser:
     def _ocr_file(self, file_path: str) -> str:
         """OCR для сканов - отключён на Streamlit Cloud"""
         logger.warning("OCR недоступен на Streamlit Cloud. Используйте текстовые PDF/DOCX.")
-        return "OCR недоступен. Пожалуйста, используйте файлы с текстовым слоем (не сканы)."
+        return "OCR недоступен. Пожалуйста, используйте файлы с текстовым слоем."
     
         except Exception as e:
             logger.error(f"OCR error: {e}")
