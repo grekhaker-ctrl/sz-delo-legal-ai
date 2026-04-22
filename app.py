@@ -70,15 +70,19 @@ def render_chat():
 
 def render_analyze():
     st.markdown('<p class="main-header">📄 Анализ рисков договора</p>', unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("Загрузите договор (PDF, DOCX, TXT)", type=['pdf', 'docx', 'txt'])
+    st.markdown('<p class="subheader">Загрузите договор для анализа рисков и ИИ-заключения</p>', unsafe_allow_html=True)
+    
+    uploaded_file = st.file_uploader("Загрузите договор (PDF, DOCX, TXT)", type=['pdf', 'docx', 'txt'], help="Максимальный размер: 50MB")
     
     if uploaded_file:
         temp_path = f"temp_{uploaded_file.name}"
         with open(temp_path, "wb") as f:
             f.write(uploaded_file.getvalue())
         
+        st.success(f"✅ Файл загружен: {uploaded_file.name} ({round(uploaded_file.size/1024/1024, 2)} MB)")
+        
         if st.button("🔍 Анализировать договор", type="primary", use_container_width=True):
-            with st.spinner("ИИ анализирует договор..."):
+            with st.spinner("🤖 ИИ анализирует договор..."):
                 try:
                     from backend.document_parser import create_parser
                     from backend.risk_analyzer import create_risk_analyzer
@@ -87,9 +91,12 @@ def render_analyze():
                     parser = create_parser()
                     contract_text = parser.parse_file(temp_path)
                     
-                    st.markdown(f"### 📄 Текст договора ({len(contract_text)} симв.)")
-                    with st.expander("Показать текст"):
-                        st.text(contract_text[:3000])
+                    if not contract_text or len(contract_text) < 100:
+                        st.error("⚠️ Не удалось извлечь текст из файла. Проверьте формат.")
+                        return
+                    
+                    st.markdown(f"### 📄 Информация о документе")
+                    st.info(f"**Размер текста:** {len(contract_text)} символов\n\n**Первые 500 символов:**\n\n{contract_text[:500]}...")
                     
                     analyzer = create_risk_analyzer()
                     risks = analyzer.analyze_contract(contract_text)
@@ -97,43 +104,85 @@ def render_analyze():
                     conclusion = analyzer.get_conclusion(risks)
                     
                     st.markdown(f"### {conclusion}")
-                    st.metric("Уровень риска", f"{score}/10", delta_color="inverse")
+                    st.metric("📊 Уровень риска", f"{score}/10", delta_color="inverse")
+                    
+                    st.markdown("### 🤖 ИИ-заключение по договору")
+                    with st.spinner("ИИ готовит развёрнутое заключение..."):
+                        llm = create_llm_engine()
+                        llm_prompt = f"""Ты — юрист СЗ Дело (Москва/МО). Дай профессиональное заключение по договору.
+
+ТЕКСТ ДОГОВОРА:
+{contract_text[:6000]}
+
+НАЙДЕННЫЕ РИСКИ:
+{chr(10).join([f'- {r.title}: {r.description}' for r in risks])}
+
+ДАЙ РАЗВЁРНУТЫЙ ОТВЕТ:
+1. Тип договора (подряд, субподряд, поставка)
+2. Существенные условия (предмет, срок, цена) — указаны ли?
+3. Ключевые риски для СЗ Дело (минимум 3)
+4. Рекомендации по изменениям (конкретные формулировки)
+5. Статьи ГК РФ которые нарушены
+6. Вердикт: можно подписывать / с правками / нельзя
+
+Отвечай структурированно, с заголовками и списками."""
+                        
+                        llm_response = llm.generate(llm_prompt)
+                        
+                        if llm_response and llm_response.text:
+                            st.markdown(llm_response.text)
+                        else:
+                            st.warning("⚠️ ИИ не ответил. Показываем базовый анализ.")
                     
                     if risks:
-                        st.markdown("### 📋 Найденные риски")
+                        st.markdown("### 📋 Детальный разбор рисков")
                         for i, risk in enumerate(risks, 1):
                             risk_class = f"risk-{risk.risk_level.value}"
+                            emoji = "🔴" if risk.risk_level.value == "critical" else "🟠" if risk.risk_level.value == "high" else "🟡" if risk.risk_level.value == "medium" else "🟢"
+                            
                             st.markdown(f"""<div class="risk-card {risk_class}">
-                                <strong>{i}. {risk.title}</strong><br>
+                                <strong>{emoji} {i}. {risk.title}</strong><br>
                                 <small>Пункт: {risk.clause_number} | Уровень: {risk.risk_level.value.upper()}</small>
                             </div>""", unsafe_allow_html=True)
                             
-                            with st.expander(f"Подробнее о риске {i}"):
-                                if risk.clause_text and risk.clause_text != "Не найдено":
-                                    st.markdown("**Цитата из договора:**")
-                                    st.info(risk.clause_text)
-                                st.markdown(f"**Описание:** {risk.description}")
+                            with st.expander(f"📖 Подробнее о риске {i}"):
+                                if risk.clause_text and risk.clause_text != "Не найдено" and risk.clause_text != "Пункт не найден":
+                                    st.markdown("**📌 Цитата из договора:**")
+                                    st.info(risk.clause_text[:500])
+                                st.markdown(f"**Описание проблемы:** {risk.description}")
                                 st.markdown(f"**Правовое основание:** {risk.legal_basis}")
-                                st.markdown(f"**Рекомендация:** {risk.recommendation}")
+                                st.markdown(f"**💡 Рекомендация:** {risk.recommendation}")
                                 if risk.proposed_text:
-                                    st.success(f"**Новая формулировка:**\n\n{risk.proposed_text}")
+                                    st.success(f"**✅ Новая формулировка:**\n\n```\n{risk.proposed_text}\n```")
                     
-                    # ИИ-анализ
-                    st.markdown("### 🤖 ИИ-заключение")
-                    with st.spinner("ИИ готовит заключение..."):
-                        llm = create_llm_engine()
-                        llm_prompt = f"Дай развёрнутое юридическое заключение по договору для СЗ Дело (Москва/МО). Найденные риски: {[r.title for r in risks]}. Текст договора: {contract_text[:5000]}"
-                        llm_response = llm.generate(llm_prompt)
-                        st.markdown(llm_response.text)
+                    report_text = f"""ОТЧЁТ ПО АНАЛИЗУ ДОГОВОРА
+=====================================
+Файл: {uploaded_file.name}
+Дата: {datetime.now().strftime('%d.%m.%Y %H:%M')}
+Заключение: {conclusion}
+Уровень риска: {score}/10
+
+НАЙДЕННЫЕ РИСКИ:
+"""
+                    for i, risk in enumerate(risks, 1):
+                        report_text += f"\n{i}. {risk.title}\n   - {risk.description}\n   - {risk.legal_basis}\n   - Рекомендация: {risk.recommendation}\n"
+                    
+                    st.download_button(
+                        "📥 Скачать отчёт (TXT)",
+                        data=report_text,
+                        file_name=f"risk_report_{datetime.now().strftime('%Y%m%d_%H%M')}.txt",
+                        mime="text/plain"
+                    )
                     
                 except Exception as e:
-                    st.error(f"⚠️ Ошибка: {str(e)}")
+                    st.error(f"⚠️ Ошибка анализа: {str(e)}")
                 finally:
                     if os.path.exists(temp_path):
                         os.remove(temp_path)
 
 def render_conclusion():
     st.markdown('<p class="main-header">⚖️ Юридическое заключение</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Получите профессиональное заключение по договору</p>', unsafe_allow_html=True)
     uploaded_file = st.file_uploader("Загрузите договор", type=['pdf', 'docx', 'txt'])
     
     if uploaded_file:
@@ -202,6 +251,7 @@ def render_fill():
 
 def render_compare():
     st.markdown('<p class="main-header">🔄 Сравнить версии договора</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Сравните две версии и узнайте о юридических последствиях</p>', unsafe_allow_html=True)
     col1, col2 = st.columns(2)
     with col1:
         file1 = st.file_uploader("Версия 1", type=['pdf', 'docx', 'txt'], key="v1")
@@ -240,7 +290,6 @@ def render_compare():
                             st.markdown(f"{emoji} **Пункт {change.clause_number}:** {change.legal_impact}")
                             st.info(f"Рекомендация: {change.recommendation}")
                     
-                    # ИИ-анализ
                     st.markdown("### 🤖 ИИ-анализ изменений")
                     with st.spinner("ИИ анализирует..."):
                         llm = create_llm_engine()
