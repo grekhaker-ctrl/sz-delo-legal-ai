@@ -1,280 +1,456 @@
 """
-СЗ Дело | Юридический ИИ-агент v4.0
-Полный функционал с авторизацией и расширенными юридическими консультациями
+СЗ Дело | Юридический ИИ-агент
+Веб-приложение для юридического отдела строительной компании
 """
 import streamlit as st
 import os
-import hashlib
-import tempfile
 from pathlib import Path
 from datetime import datetime
-import secrets
+import hashlib
 
+# Настройка страницы
 st.set_page_config(
-    page_title="СЗ Дело | Юридический ИИ",
+    page_title="СЗ Дело | Юридический ИИ-агент",
     page_icon="⚖️",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
+# Кастомные стили
 st.markdown("""
 <style>
-    :root { --primary: #1e3a5f; --success: #2e7d32; --warning: #f57c00; --danger: #c62828; }
-    .stApp { background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%); }
-    .main-title { font-size: 2.5em; font-weight: 800; color: #1e3a5f; text-align: center; margin-bottom: 10px; }
-    .main-subtitle { font-size: 1.3em; color: #666; text-align: center; margin-bottom: 40px; }
-    .auth-container { max-width: 400px; margin: 50px auto; padding: 40px; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
-    .feature-card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); margin: 15px 0; }
-    .risk-critical { background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); border-left: 5px solid #c62828; padding: 18px; border-radius: 10px; margin: 12px 0; }
-    .risk-high { background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); border-left: 5px solid #f57c00; padding: 18px; border-radius: 10px; margin: 12px 0; }
-    .risk-medium { background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%); border-left: 5px solid #fbc02d; padding: 18px; border-radius: 10px; margin: 12px 0; }
-    .risk-low { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border-left: 5px solid #2e7d32; padding: 18px; border-radius: 10px; margin: 12px 0; }
-    .user-msg { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); padding: 15px 20px; border-radius: 15px 15px 15px 0; margin: 10px 0; border-left: 4px solid #1e3a5f; }
-    .ai-msg { background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%); padding: 15px 20px; border-radius: 15px 15px 0 15px; margin: 10px 0; border-left: 4px solid #2e7d32; }
+    /* Фирменные цвета */
+    :root {
+        --primary-color: #1e3a5f;  /* Тёмно-синий */
+        --success-color: #2e7d32;  /* Зелёный */
+        --warning-color: #f57c00;  /* Оранжевый */
+        --danger-color: #c62828;   /* Красный */
+    }
+    
+    /* Заголовки */
+    .main-header {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #1e3a5f;
+        margin-bottom: 10px;
+    }
+    
+    .subheader {
+        font-size: 1.2em;
+        color: #666;
+        margin-bottom: 30px;
+    }
+    
+    /* Карточки рисков */
+    .risk-card {
+        padding: 15px;
+        border-radius: 8px;
+        margin: 10px 0;
+        border-left: 4px solid;
+    }
+    
+    .risk-critical {
+        background-color: #ffebee;
+        border-color: #c62828;
+    }
+    
+    .risk-high {
+        background-color: #fff3e0;
+        border-color: #f57c00;
+    }
+    
+    .risk-medium {
+        background-color: #fff8e1;
+        border-color: #fbc02d;
+    }
+    
+    .risk-low {
+        background-color: #e8f5e9;
+        border-color: #2e7d32;
+    }
+    
+    /* Кнопки */
+    .stButton > button {
+        border-radius: 6px;
+        font-weight: 600;
+        padding: 10px 24px;
+    }
+    
+    /* Diff */
+    .diff-added {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+    
+    .diff-removed {
+        background-color: #ffebee;
+        color: #c62828;
+    }
 </style>
 """, unsafe_allow_html=True)
 
-USERS = {
-    "admin": {"password_hash": "3d3f9d4e1c2b8a7f6e9d3c2b1a0f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1", "name": "Администратор", "role": "admin"},
-    "jurist1": {"password_hash": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890", "name": "Юрист 1", "role": "jurist"},
-    "jurist2": {"password_hash": "b2c3d4e5f6789012345678901234567890123456789012345678901234567890123", "name": "Юрист 2", "role": "jurist"},
-}
+# Инициализация сессии
+if 'session_id' not in st.session_state:
+    st.session_state.session_id = hashlib.md5(str(datetime.now()).encode()).hexdigest()
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
 
-def verify_password(password: str, hashed: str) -> bool:
-    return hash_password(password) == hashed
+if 'current_contract' not in st.session_state:
+    st.session_state.current_contract = None
 
-for key, default in [('logged_in', False), ('messages', []), ('session_id', secrets.token_hex(16)), ('contract_text', None), ('contract_name', None)]:
-    if key not in st.session_state:
-        st.session_state[key] = default
+if 'current_contract_name' not in st.session_state:
+    st.session_state.current_contract_name = None
 
-SUPPORTED_FORMATS = ['pdf', 'docx', 'doc', 'txt', 'rtf', 'jpg', 'jpeg', 'png', 'tiff', 'tif']
 
-def save_file(uploaded_file) -> str:
-    suffix = Path(uploaded_file.name).suffix.lower().lstrip('.')
-    with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{suffix}') as tmp:
-        tmp.write(uploaded_file.getvalue())
-        return tmp.name
+# ============================================================================
+# БОКОВАЯ ПАНЕЛЬ
+# ============================================================================
 
-def cleanup(path: str):
-    try:
-        if path and os.path.exists(path): os.remove(path)
-    except: pass
+with st.sidebar:
+    st.image("https://cdn-icons-png.flaticon.com/512/2275/2275970.png", width=80)
+    st.title("СЗ Дело")
+    st.markdown("**Юридический ИИ-агент**")
+    
+    st.divider()
+    
+    # Навигация
+    menu = st.radio(
+        "Разделы",
+        [
+            "💬 Чат с ИИ-юристом",
+            "📄 Анализ рисков договора",
+            "⚖️ Юридическое заключение",
+            "📝 Заполнить шаблон",
+            "🔄 Сравнить версии",
+            "📚 База знаний",
+        ],
+        label_visibility="collapsed"
+    )
+    
+    st.divider()
+    
+    # Информация
+    st.markdown("### ℹ️ О системе")
+    st.markdown("""
+    - **Компания:** СЗ Дело
+    - **Специализация:** Строительство ЖК в Москве и МО
+    - **LLM:** YandexGPT + GigaChat
+    - **Работа:** Без VPN, РФ
+    """)
+    
+    # Кнопка очистки
+    if st.button("🗑️ Очистить историю чата", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
 
-def get_llm():
-    try:
-        from backend.llm_engine import create_llm_engine
-        return create_llm_engine()
-    except Exception as e:
-        st.error(f"Ошибка LLM: {e}")
-        return None
 
-def get_kb():
-    try:
-        from backend.legal_kb import create_legal_kb
-        return create_legal_kb()
-    except Exception as e:
-        st.error(f"Ошибка KB: {e}")
-        return None
-
-def get_parser():
-    try:
-        from backend.document_parser import create_parser
-        return create_parser()
-    except Exception as e:
-        st.error(f"Ошибка: {e}")
-        return None
-
-def render_login():
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.markdown("""<div class="auth-container"><div style="text-align: center; margin-bottom: 30px;"><h1 style="color: #1e3a5f; font-size: 2em;">⚖️ СЗ Дело</h1><p style="color: #666;">Юридический ИИ-агент</p></div>""", unsafe_allow_html=True)
-        st.markdown("### 🔐 Вход в систему")
-        username = st.text_input("👤 Логин", placeholder="Введите логин", key="login_username")
-        password = st.text_input("🔑 Пароль", type="password", placeholder="Введите пароль", key="login_password")
-        if st.button("🚀 Войти", type="primary", use_container_width=True):
-            if username in USERS and verify_password(password, USERS[username]["password_hash"]):
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.session_state.user_name = USERS[username]["name"]
-                st.session_state.user_role = USERS[username]["role"]
-                st.session_state.messages = []
-                st.rerun()
-            else:
-                st.error("❌ Неверный логин или пароль")
-        st.markdown("<div style='margin-top: 30px; text-align: center; color: #888;'><p>Доступ только для сотрудников СЗ Дело</p></div></div>", unsafe_allow_html=True)
-
-def render_main_app():
-    with st.sidebar:
-        st.image("https://cdn-icons-png.flaticon.com/512/2275/2275970.png", width=80)
-        st.markdown(f"### 👤 {st.session_state.user_name}")
-        st.markdown(f"**Роль:** {st.session_state.user_role}")
-        st.divider()
-        menu = st.radio("📋 Меню", ["💬 Чат с ИИ", "📄 Анализ документов", "⚖️ Юридическое заключение", "📝 Генерация документов", "🔄 Сравнение версий", "📚 Справочник"], label_visibility="collapsed")
-        st.divider()
-        if st.button("🚪 Выйти", use_container_width=True):
-            st.session_state.logged_in = False
-            st.rerun()
-    if menu == "💬 Чат с ИИ": render_chat()
-    elif menu == "📄 Анализ документов": render_analyze()
-    elif menu == "⚖️ Юридическое заключение": render_conclusion()
-    elif menu == "📝 Генерация документов": render_template()
-    elif menu == "🔄 Сравнение версий": render_compare()
-    elif menu == "📚 Справочник": render_kb()
+# ============================================================================
+# ГЛАВНЫЙ ЭКРАН
+# ============================================================================
 
 def render_chat():
-    st.markdown("<p class='main-title'>💬 Чат с ИИ-юристом</p><p class='main-subtitle'>Универсальный юридический помощник</p>", unsafe_allow_html=True)
-    with st.expander("📎 Прикрепить документ"):
-        file = st.file_uploader("Загрузите документ", type=SUPPORTED_FORMATS, key="chat_file")
-        file_text = ""
-        if file:
-            path = save_file(file)
-            parser = get_parser()
-            if parser:
-                file_text = parser.parse_file(path)
-                if file_text: st.success(f"✅ Прочитан ({len(file_text)} символов)")
-            cleanup(path)
-    for msg in st.session_state.messages:
-        st.markdown(f"<div class='{'user-msg' if msg['role']=='user' else 'ai-msg'}'><b>{'Вы' if msg['role']=='user' else '🤖 ИИ'}:</b><br>{msg['content']}</div>", unsafe_allow_html=True)
-        if msg.get("sources"): st.markdown("**📚 Источники:** " + " ".join(msg["sources"]))
-    prompt = st.chat_input("Введите юридический вопрос...")
-    if prompt:
+    """Чат с ИИ-юристом"""
+    st.markdown('<p class="main-header">💬 Чат с ИИ-юристом</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Задавайте юридические вопросы по договорам и строительному праву</p>', unsafe_allow_html=True)
+    
+    # Отображение истории сообщений
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    
+    # Ввод пользователя
+    if prompt := st.chat_input("Введите ваш юридический вопрос..."):
+        # Добавление сообщения пользователя
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.spinner("🤖 Анализирую..."):
-            llm = get_llm()
-            kb = get_kb()
-            if not llm: return
-            context = kb.search(prompt) if kb else ""
-            full_prompt = prompt
-            if file_text:
-                full_prompt = f"""Пользователь задаёт вопрос и прикрепил документ.
-ВОПРОС: {prompt}
-ДОКУМЕНТ: {file_text[:15000]}
-ТРЕБОВАНИЯ: 1) Развёрнутый ответ 500+ слов 2) Цитаты из документа 3) Все статьи законов с ссылками 4) Пошаговые рекомендации 5) Риски 6) Примеры из практики
-"""
-            else:
-                full_prompt = f"""Дай развёрнутый юридический ответ на вопрос: {prompt}
-ТРЕБОВАНИЯ: 1) 500+ слов 2) Все нормы права 3) Ссылки на КонсультантПлюс 4) Примеры из практики 5) Пошаговые действия 6) Риски 7) Альтернативы
-"""
-            response = llm.generate(full_prompt, context=context)
-            if response.success and response.text:
-                sources = []
-                if kb:
-                    for s in kb.find_sources(prompt)[:15]:
-                        sources.append(f"📖 [{s['name']}]({s['url']})")
-                st.session_state.messages.append({"role": "assistant", "content": response.text, "sources": sources})
-                st.rerun()
-
-def render_analyze():
-    st.markdown("<p class='main-title'>📄 Анализ документов</p><p class='main-subtitle'>ИИ найдёт все риски и даст рекомендации</p>", unsafe_allow_html=True)
-    file = st.file_uploader("📎 Загрузите документ", type=['pdf', 'docx', 'doc', 'txt', 'rtf'], key="analyze_file")
-    if file:
-        path = save_file(file)
-        if st.button("🔍 Начать анализ", type="primary", use_container_width=True):
-            with st.spinner("📖 Читаю..."):
-                parser = get_parser()
-                if not parser: cleanup(path); return
-                text = parser.parse_file(path)
-                if not text: st.error("Ошибка чтения"); cleanup(path); return
-                st.success(f"✅ ({len(text)} символов)")
-                llm = get_llm()
-                kb = get_kb()
-                if not llm: cleanup(path); return
-                prompt = f"""Проведи полный анализ документа.
-ДОКУМЕНТ: {text[:15000]}
-ТРЕБОВАНИЯ: 1) Найди ВСЕ риски с цитатами 2) Уровень: 🔴🟠🟡🟢 3) Статьи законов 4) Ссылки 5) Рекомендации по исправлению 6) Итоговое заключение
-"""
-                response = llm.generate(prompt, context=kb.search("анализ рисков") if kb else "")
-                if response.success and response.text:
-                    st.markdown("---")
-                    st.markdown("## 📊 Результаты анализа")
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        # Генерация ответа
+        with st.chat_message("assistant"):
+            with st.spinner("Анализирую вопрос..."):
+                try:
+                    from backend.llm_engine import create_llm_engine
+                    from backend.legal_kb import create_legal_kb
+                    
+                    llm = create_llm_engine()
+                    kb = create_legal_kb()
+                    
+                    # Поиск контекста в базе знаний
+                    context = kb.search(prompt, sources=['local'])
+                    
+                    # Генерация ответа
+                    response = llm.generate(prompt, context=context)
+                    
                     st.markdown(response.text)
-                cleanup(path)
+                    
+                    # Добавление ответа в историю
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": response.text
+                    })
+                    
+                except Exception as e:
+                    st.error(f"Ошибка: {str(e)}")
+
+
+# После анализа рисков добавьте ИИ-заключение
+st.markdown("### 🤖 ИИ-анализ договора")
+with st.spinner("ИИ готовит заключение..."):
+    llm = create_llm_engine()
+    llm_prompt = f"""Дай развёрнутое юридическое заключение по договору для СЗ Дело (Москва/МО).
+
+Найденные риски:
+{[f'{r.title}: {r.description}' for r in risks]}
+
+Текст договора (фрагмент):
+{contract_text[:5000]}
+
+Проанализируй:
+1. Тип договора
+2. Ключевые риски для СЗ Дело
+3. Рекомендации по изменениям
+4. Статьи ГК РФ
+
+Дай конкретные рекомендации!"""
+    llm_response = llm.generate(llm_prompt)
+    st.markdown(llm_response.text)
 
 def render_conclusion():
-    st.markdown("<p class='main-title'>⚖️ Юридическое заключение</p><p class='main-subtitle'>ИИ подготовит экспертное заключение</p>", unsafe_allow_html=True)
-    file = st.file_uploader("📎 Загрузите документы", type=['pdf', 'docx', 'doc', 'txt', 'rtf'], accept_multiple_files=True, key="conc_file")
-    if file and st.button("📝 Подготовить заключение", type="primary"):
-        paths = [save_file(f) for f in file]
-        with st.spinner("📖 Читаю..."):
-            parser = get_parser()
-            texts = [parser.parse_file(p) for p in paths]
-            combined = "\n\n".join([f"===DOC {i+1}===\n{t}" for i, t in enumerate(texts) if t])
-            llm = get_llm()
-            if llm:
-                response = llm.generate(f"""Подготовь юридическое заключение.
-ДОКУМЕНТЫ: {combined[:15000]}
-ТРЕБОВАНИЯ: 1) Оценка соответствия законодательству 2) Риски 3) Рекомендации 4) Экспертное мнение 5) Источники
-""")
-                if response.success and response.text:
-                    st.markdown("---")
-                    st.markdown("## 📋 Заключение")
-                    st.markdown(response.text)
-            for p in paths: cleanup(p)
+    """Юридическое заключение"""
+    st.markdown('<p class="main-header">⚖️ Юридическое заключение</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Получите профессиональное заключение по договору</p>', unsafe_allow_html=True)
+    
+    uploaded_file = st.file_uploader(
+        "Загрузите договор",
+        type=['pdf', 'docx', 'txt']
+    )
+    
+    if uploaded_file:
+        temp_path = f"temp_{uploaded_file.name}"
+        with open(temp_path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+        
+        if st.button("📝 Получить заключение", type="primary", use_container_width=True):
+            with st.spinner("Готовлю заключение..."):
+                try:
+                    from backend.document_parser import create_parser
+                    from backend.llm_engine import create_llm_engine
+                    
+                    parser = create_parser()
+                    contract_text = parser.parse_file(temp_path)
+                    
+                    llm = create_llm_engine()
+                    
+                    prompt = f"""
+Проанализируй договор и дай юридическое заключение для строительной компании СЗ Дело (Москва/МО).
 
-def render_template():
-    st.markdown("<p class='main-title'>📝 Генерация документов</p><p class='main-subtitle'>ИИ создаст документ</p>", unsafe_allow_html=True)
-    doc_types = [("dogovor_podryada", "Договор подряда"), ("dogovor_subpodryada", "Договор субподряда"), ("pretenziya", "Претензия"), ("soglashenie", "Соглашение")]
-    selected = st.selectbox("Тип", [x[1] for x in doc_types])
-    if selected:
-        col1, col2 = st.columns(2)
-        with col1: customer = st.text_input("Сторона 1"); inn1 = st.text_input("ИНН")
-        with col2: contractor = st.text_input("Сторона 2"); inn2 = st.text_input("ИНН")
-        price = st.text_input("Сумма")
-        subject = st.text_area("Предмет")
-        if st.button("📄 Сгенерировать", type="primary"):
-            llm = get_llm()
-            if llm:
-                response = llm.generate(f"""Создай документ: {selected}
-Сторона 1: {customer}, ИНН: {inn1}
-Сторона 2: {contractor}, ИНН: {inn2}
-Сумма: {price}
-Предмет: {subject}
-ТРЕБОВАНИЯ: Полный текст, готов к подписанию, все разделы ГК РФ
-""")
-                if response.success and response.text:
-                    st.markdown("---")
-                    st.markdown("## 📄 Документ")
+Текст договора:
+{contract_text[:10000]}  # Ограничение по длине
+
+Формат ответа:
+1. Тип договора
+2. Заключение (✅ Можно подписывать / ⚠️ С правками / ❌ Не рекомендуется)
+3. Ключевые риски
+4. Рекомендации по изменениям
+"""
+                    
+                    response = llm.generate(prompt)
+                    
                     st.markdown(response.text)
+                    
+                except Exception as e:
+                    st.error(f"Ошибка: {str(e)}")
+                finally:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+
+
+def render_fill():
+    """Заполнение шаблонов"""
+    st.markdown('<p class="main-header">📝 Заполнить шаблон договора</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Автоматическое заполнение шаблона по реквизитам</p>', unsafe_allow_html=True)
+    
+    from backend.contract_filler import create_filler
+    
+    filler = create_filler()
+    templates = filler.get_available_templates()
+    
+    if not templates:
+        st.info("Шаблоны не найдены. Разместите файлы .docx в папке data/templates/")
+        return
+    
+    # Выбор шаблона
+    template_options = {t['name']: t for t in templates}
+    selected_name = st.selectbox("Выберите шаблон", list(template_options.keys()))
+    selected_template = template_options[selected_name]
+    
+    st.markdown(f"**Файл:** `{selected_template['filename']}`")
+    
+    # Форма для реквизитов
+    st.markdown("### Реквизиты")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        contract_number = st.text_input("Номер договора")
+        customer_name = st.text_input("Заказчик (название)")
+        customer_inn = st.text_input("ИНН Заказчика")
+    
+    with col2:
+        contract_date = st.date_input("Дата договора", value=datetime.now())
+        contractor_name = st.text_input("Подрядчик (название)")
+        contractor_inn = st.text_input("ИНН Подрядчика")
+    
+    object_address = st.text_input("Адрес объекта строительства")
+    contract_price = st.text_input("Цена договора (рублей)")
+    work_description = st.text_area("Описание работ")
+    
+    if st.button("📄 Заполнить шаблон", type="primary", use_container_width=True):
+        try:
+            data = {
+                'contract_number': contract_number or "№ ___",
+                'contract_date': contract_date.strftime('%d.%m.%Y'),
+                'customer_name': customer_name or "________",
+                'customer_inn': customer_inn or "________",
+                'contractor_name': contractor_name or "________",
+                'contractor_inn': contractor_inn or "________",
+                'object_address': object_address or "________",
+                'contract_price': contract_price or "________",
+                'work_description': work_description or "________",
+            }
+            
+            output_path = filler.fill_template(selected_template['path'], data)
+            
+            st.success("✅ Шаблон заполнен!")
+            
+            # Скачивание
+            with open(output_path, "rb") as f:
+                st.download_button(
+                    "📥 Скачать договор",
+                    data=f.read(),
+                    file_name=f"contract_{contract_number}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+        
+        except Exception as e:
+            st.error(f"Ошибка: {str(e)}")
+
 
 def render_compare():
-    st.markdown("<p class='main-title'>🔄 Сравнение версий</p><p class='main-subtitle'>ИИ сравнит документы</p>", unsafe_allow_html=True)
+    """Сравнение версий"""
+    st.markdown('<p class="main-header">🔄 Сравнить версии договора</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Сравните две версии договора и узнайте о юридических последствиях изменений</p>', unsafe_allow_html=True)
+    
     col1, col2 = st.columns(2)
-    with col1: file1 = st.file_uploader("Версия 1", type=['pdf', 'docx', 'txt'], key="v1")
-    with col2: file2 = st.file_uploader("Версия 2", type=['pdf', 'docx', 'txt'], key="v2")
-    if file1 and file2 and st.button("🔍 Сравнить", type="primary"):
-        path1, path2 = save_file(file1), save_file(file2)
-        parser = get_parser()
-        if parser:
-            t1, t2 = parser.parse_file(path1), parser.parse_file(path2)
-            llm = get_llm()
-            if llm and t1 and t2:
-                response = llm.generate(f"""Сравни два договора.
-ВЕРСИЯ 1: {t1[:6000]}
-ВЕРСИЯ 2: {t2[:6000]}
-ТРЕБОВАНИЯ: Все изменения, влияние, риски, рекомендации
-""")
-                if response.success and response.text:
-                    st.markdown("---")
-                    st.markdown(response.text)
-        cleanup(path1); cleanup(path2)
+    
+    with col1:
+        file1 = st.file_uploader("Версия 1", type=['pdf', 'docx', 'txt'], key="v1")
+    
+    with col2:
+        file2 = st.file_uploader("Версия 2", type=['pdf', 'docx', 'txt'], key="v2")
+    
+    if file1 and file2:
+        # Сохранение файлов
+        temp1 = f"temp_v1_{file1.name}"
+        temp2 = f"temp_v2_{file2.name}"
+        
+        with open(temp1, "wb") as f:
+            f.write(file1.getvalue())
+        with open(temp2, "wb") as f:
+            f.write(file2.getvalue())
+        
+        if st.button("🔍 Сравнить версии", type="primary", use_container_width=True):
+            with st.spinner("Сравниваю версии..."):
+                try:
+                    from backend.contract_comparator import create_comparator
+                    from backend.llm_engine import create_llm_engine
+                    
+                    comparator = create_comparator()
+                    
+                    # Сравнение
+                    result = comparator.compare_and_explain(temp1, temp2)
+                    
+                    # Результаты
+                    st.markdown(f"### Найдено изменений: {result['total_changes']}")
+                    
+                    # HTML diff
+                    st.markdown("### 📊 Визуальное сравнение")
+                    st.components.v1.html(result['diff_html'], height=400, scrolling=True)
+                    
+                    # Юридический анализ
+                    st.markdown("### ⚖️ Юридические последствия")
+                    st.markdown(result['legal_analysis'])
+                    
+                    if result['llm_explanation']:
+                        st.markdown("### 🤖 Объяснение ИИ")
+                        st.markdown(result['llm_explanation'])
+                    
+                except Exception as e:
+                    st.error(f"Ошибка: {str(e)}")
+                finally:
+                    if os.path.exists(temp1):
+                        os.remove(temp1)
+                    if os.path.exists(temp2):
+                        os.remove(temp2)
+
 
 def render_kb():
-    st.markdown("<p class='main-title'>📚 Справочник</p><p class='main-subtitle'>База знаний</p>", unsafe_allow_html=True)
-    query = st.text_input("🔍 Поиск")
-    if query and st.button("Найти", type="primary"):
-        kb = get_kb()
-        llm = get_llm()
-        if kb and llm:
-            response = llm.generate(f"""Ответь на вопрос: {query}
-ТРЕБОВАНИЯ: Развёрнуто, ссылки на КонсультантПлюс, примеры практики
-""", context=kb.search(query))
-            if response.success and response.text:
-                st.markdown(response.text)
+    """База знаний"""
+    st.markdown('<p class="main-header">📚 База знаний</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Поиск по Гарант, КонсультантПлюс и внутренней базе СЗ Дело</p>', unsafe_allow_html=True)
+    
+    query = st.text_input("Поисковый запрос", placeholder="Например: неустойка по договору подряда")
+    
+    if st.button("🔍 Поиск", type="primary", use_container_width=True):
+        if not query:
+            st.warning("Введите поисковый запрос")
+        else:
+            with st.spinner("Ищу в базах знаний..."):
+                try:
+                    from backend.legal_kb import create_legal_kb
+                    
+                    kb = create_legal_kb()
+                    context = kb.search(query)
+                    
+                    st.markdown("### Результаты поиска")
+                    st.markdown(context)
+                    
+                except Exception as e:
+                    st.error(f"Ошибка: {str(e)}")
 
-if not st.session_state.get("logged_in"):
-    render_login()
-else:
-    render_main_app()
+
+# ============================================================================
+# ОСНОВНАЯ ЛОГИКА
+# ============================================================================
+
+if menu == "💬 Чат с ИИ-юристом":
+    render_chat()
+
+elif menu == "📄 Анализ рисков договора":
+    render_analyze()
+
+elif menu == "⚖️ Юридическое заключение":
+    render_conclusion()
+
+elif menu == "📝 Заполнить шаблон":
+    render_fill()
+
+elif menu == "🔄 Сравнить версии":
+    render_compare()
+
+elif menu == "📚 База знаний":
+    render_kb()
+
+
+# ============================================================================
+# ПОДВАЛ
+# ============================================================================
+
+st.divider()
+st.markdown("""
+<div style="text-align: center; color: #666; font-size: 0.9em;">
+    <p>© 2025 СЗ Дело | Юридический ИИ-агент</p>
+    <p>Система работает на базе YandexGPT и GigaChat (РФ, без VPN)</p>
+</div>
+""", unsafe_allow_html=True)
