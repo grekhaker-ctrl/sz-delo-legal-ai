@@ -93,29 +93,6 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
     }
     
-    /* Статусы */
-    .status-success {
-        display: inline-block;
-        padding: 6px 14px;
-        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-        color: #065f46;
-        border-radius: 8px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin: 4px 6px 4px 0;
-    }
-    
-    .status-error {
-        display: inline-block;
-        padding: 6px 14px;
-        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-        color: #991b1b;
-        border-radius: 8px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin: 4px 6px 4px 0;
-    }
-    
     /* Заголовки разделов */
     .section-title {
         font-size: 1.5em;
@@ -126,14 +103,21 @@ st.markdown("""
         border-bottom: 3px solid #3b82f6;
     }
     
-    /* Sidebar */
+    /* Sidebar - фиксированный */
     [data-testid="stSidebar"] {
         background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
         border-right: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden !important;
+        position: fixed !important;
+        height: 100vh !important;
     }
     
     [data-testid="stSidebar"] * {
         color: #f1f5f9 !important;
+    }
+    
+    [data-testid="stSidebar"] .stVerticalBlock {
+        overflow: hidden !important;
     }
     
     /* Загрузчик файлов */
@@ -248,33 +232,6 @@ with st.sidebar:
         label_visibility="collapsed",
         index=0
     )
-    
-    st.divider()
-    
-    # Статус
-    st.markdown("**🔧 Статус системы**")
-    try:
-        from backend.llm_engine import create_llm_engine
-        llm = create_llm_engine()
-        status = llm.get_status()
-        for name, ok in status.items():
-            if ok:
-                st.markdown(f'<span class="status-success">✓ {name}</span>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<span class="status-error">✗ {name}</span>', unsafe_allow_html=True)
-    except:
-        st.markdown('<span class="status-error">Ошибка подключения</span>', unsafe_allow_html=True)
-    
-    st.divider()
-    
-    # Информация
-    st.markdown("""
-    <div style="color: #94a3b8; font-size: 0.85em; line-height: 1.8; padding: 0 8px;">
-        <p style="margin: 6px 0;"><strong>🏢</strong> СЗ Дело</p>
-        <p style="margin: 6px 0;"><strong>🏗️</strong> Строительство</p>
-        <p style="margin: 6px 0;"><strong>🤖</strong> Polza AI</p>
-    </div>
-    """, unsafe_allow_html=True)
     
     st.divider()
     
