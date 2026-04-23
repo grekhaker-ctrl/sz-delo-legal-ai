@@ -1,5 +1,5 @@
 """
-LLM Engine - YandexGPT + GigaChat
+LLM Engine - OpenAI API Compatible + YandexGPT + GigaChat
 """
 import os
 import logging
@@ -19,6 +19,57 @@ class LLMResponse:
         self.model = model
         self.success = success
         self.error = error
+
+class OpenAILLM:
+    """OpenAI-совместимый API (включая совместимые сервисы)"""
+    def __init__(self, api_key: str, base_url: str = "https://api.openai.com/v1", model: str = "gpt-3.5-turbo"):
+        self.api_key = api_key
+        self.base_url = base_url
+        self.model = model
+        self.endpoint = f"{base_url}/chat/completions"
+        logger.info(f"OpenAILLM инициализирован (url: {base_url[:30]}...)")
+    
+    def is_available(self) -> bool:
+        return bool(self.api_key)
+    
+    def generate(self, messages: List[Message], context: str = "") -> LLMResponse:
+        try:
+            logger.info(f"Отправка запроса к OpenAI API...")
+            
+            system_prompt = """Ты - юридический консультант компании СЗ Дело.
+Ты специализируешься на всех отраслях права РФ: ГК РФ, ТК РФ, АПК РФ, КоАП и др.
+Ты даёшь РАЗВЁРНУТЫЕ ответы минимум 500 слов.
+Ты всегда указываешь статьи законов с ссылками на КонсультантПлюс."""
+            
+            full_messages = [{"role": "system", "content": f"{system_prompt}\n\nКонтекст:\n{context}"}]
+            for m in messages:
+                full_messages.append({"role": m.role, "content": m.content})
+            
+            headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
+            payload = {"model": self.model, "messages": full_messages, "temperature": 0.3, "max_tokens": 4096}
+            
+            logger.info(f"Запрос к: {self.endpoint}")
+            
+            r = requests.post(self.endpoint, headers=headers, json=payload, timeout=90)
+            logger.info(f"Статус ответа: {r.status_code}")
+            r.raise_for_status()
+            
+            result = r.json()
+            logger.info(f"Ответ API получен")
+            
+            text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+            
+            if not text:
+                return LLMResponse(text="", model=self.model, success=False, error="Пустой ответ от API")
+            
+            return LLMResponse(text=text, model=self.model, success=True)
+            
+        except requests.exceptions.Timeout:
+            logger.error("OpenAILLM: Timeout")
+            return LLMResponse(text="", model=self.model, success=False, error="Превышено время ожидания")
+        except Exception as e:
+            logger.error(f"OpenAILLM ошибка: {e}")
+            return LLMResponse(text="", model=self.model, success=False, error=str(e))
 
 class YandexGPT:
     def __init__(self, folder_id: str, api_key: str):
@@ -129,6 +180,15 @@ class LLMEngine:
         self.llms = []
         logger.info(f"LLMEngine конфиг: {config}")
         
+        # OpenAI-совместимый API (приоритет)
+        openai_key = config.get("openai_api_key")
+        if openai_key:
+            self.llms.append(OpenAILLM(api_key=openai_key))
+            logger.info(f"✅ OpenAI LLM добавлен")
+        else:
+            logger.warning(f"❌ OpenAI LLM: ключа нет")
+        
+        # YandexGPT
         folder_id = config.get("yandex_folder_id")
         api_key = config.get("yandex_api_key")
         
@@ -138,6 +198,7 @@ class LLMEngine:
         else:
             logger.warning(f"❌ YandexGPT: folder_id={folder_id}, api_key={'есть' if api_key else 'нет'}")
         
+        # GigaChat
         gigachat_creds = config.get("gigachat_credentials")
         if gigachat_creds:
             self.llms.append(GigaChat(credentials=gigachat_creds))
@@ -178,7 +239,7 @@ class LLMEngine:
 
 **Что делать:**
 - Проверьте Secrets в настройках Streamlit Cloud
-- Убедитесь что добавлены YANDEX_FOLDER_ID и YANDEX_API_KEY
+- Убедитесь что добавлены API_KEY
 - Попробуйте позже
 
 **Ваш вопрос:** {user_message[:200]}
@@ -193,20 +254,27 @@ class LLMEngine:
 
 def create_llm_engine() -> LLMEngine:
     """Создание LLM Engine"""
-    config = {"yandex_folder_id": None, "yandex_api_key": None, "gigachat_credentials": None}
+    config = {
+        "openai_api_key": None,
+        "yandex_folder_id": None,
+        "yandex_api_key": None,
+        "gigachat_credentials": None
+    }
     
     # Streamlit Secrets
     try:
         import streamlit as st
+        config["openai_api_key"] = st.secrets.get("OPENAI_API_KEY")
         config["yandex_folder_id"] = st.secrets.get("YANDEX_FOLDER_ID")
         config["yandex_api_key"] = st.secrets.get("YANDEX_API_KEY")
         config["gigachat_credentials"] = st.secrets.get("GIGACHAT_CREDENTIALS")
-        logger.info(f"Secrets загружены: folder_id={'есть' if config['yandex_folder_id'] else 'нет'}")
+        logger.info(f"Secrets загружены: openai={'есть' if config['openai_api_key'] else 'нет'}")
     except Exception as e:
         logger.warning(f"Secrets не загружены: {e}")
     
     # Fallback на .env
-    if not config["yandex_folder_id"]:
+    if not config["openai_api_key"]:
+        config["openai_api_key"] = os.getenv("OPENAI_API_KEY")
         config["yandex_folder_id"] = os.getenv("YANDEX_FOLDER_ID")
         config["yandex_api_key"] = os.getenv("YANDEX_API_KEY")
         config["gigachat_credentials"] = os.getenv("GIGACHAT_CREDENTIALS")
