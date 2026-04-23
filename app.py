@@ -20,43 +20,24 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    /* Скрываем стандартные элементы Streamlit */
+    /* Скрываем стандартные элементы */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* Sidebar - ВСЕГДА ВИДИМ, нельзя скрыть */
-    [data-testid="stSidebarCloseButton"] {
+    /* Блокируем закрытие sidebar */
+    button[title="Close sidebar"] {
         display: none !important;
-    }
-    
-    [data-testid="stSidebar"] {
-        position: fixed !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 280px !important;
-        min-width: 280px !important;
-        max-width: 280px !important;
-        height: 100vh !important;
-        overflow: hidden !important;
-        background: linear-gradient(180deg, #1e3a5f 0%, #2d5a87 100%) !important;
-        border-right: 2px solid #3d7ab5 !important;
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: #ffffff !important;
-    }
-    
-    /* Главный контейнер - сдвиг вправо */
-    .stApp {
-        margin-left: 280px !important;
-        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
-        min-height: 100vh;
     }
     
     /* Шрифт */
     * {
         font-family: 'Inter', sans-serif !important;
+    }
+    
+    /* Фон */
+    .stApp {
+        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
     }
     
     /* Hero секция */
@@ -99,15 +80,12 @@ st.markdown("""
         border-radius: 8px;
         padding: 11px 26px;
         font-weight: 600;
-        font-size: 0.93em;
         transition: all 0.25s ease;
-        box-shadow: 0 3px 10px rgba(37, 99, 235, 0.3);
     }
     
     .stButton > button:hover {
         background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
         transform: translateY(-2px);
-        box-shadow: 0 5px 18px rgba(37, 99, 235, 0.4);
     }
     
     /* Загрузчик файлов */
@@ -116,11 +94,6 @@ st.markdown("""
         border-radius: 10px;
         padding: 22px;
         border: 2px dashed #7a8fa3;
-    }
-    
-    [data-testid="stFileUploader"]:hover {
-        border-color: #2563eb;
-        background: #e8f1f8;
     }
     
     /* ЧАТ - ЧЁТКОЕ РАЗДЕЛЕНИЕ */
@@ -132,8 +105,6 @@ st.markdown("""
         margin: 11px 0;
         max-width: 75%;
         margin-left: auto;
-        box-shadow: 0 3px 11px rgba(37, 99, 235, 0.28);
-        line-height: 1.5;
     }
     
     .chat-assistant-message {
@@ -144,11 +115,8 @@ st.markdown("""
         margin: 11px 0;
         max-width: 75%;
         border: 1px solid #bcccdc;
-        box-shadow: 0 3px 11px rgba(0, 0, 0, 0.09);
-        line-height: 1.5;
     }
     
-    /* Разделители */
     hr {
         border-color: #bcccdc;
         margin: 22px 0;
