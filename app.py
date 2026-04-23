@@ -39,15 +39,15 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Фон приложения - профессиональный градиент */
+    /* Фон приложения - нейтральный светлый */
     .stApp {
-        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 50%, #d8dde5 100%);
+        background: #f8f9fa;
     }
     
-    /* Sidebar - глубокий синий с фиолетовым оттенком */
+    /* Sidebar - классический тёмно-синий */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1a284a 0%, #253858 50%, #1e3a5f 100%) !important;
-        box-shadow: 4px 0 20px rgba(26, 40, 74, 0.3) !important;
+        background: linear-gradient(180deg, #1e3a5f 0%, #1a283a 100%) !important;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
     }
     
     [data-testid="stSidebar"] * {
@@ -75,101 +75,93 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hero секция - благородный синий с золотым акцентом */
+    /* Hero секция - классический синий */
     .hero-section {
-        background: linear-gradient(135deg, #1a284a 0%, #25426e 40%, #2d5a87 100%);
-        border-radius: 16px;
-        padding: 36px 44px;
-        margin: 24px 28px 28px 28px;
-        box-shadow: 0 10px 30px rgba(26, 40, 74, 0.25);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+        border-radius: 12px;
+        padding: 32px 40px;
+        margin: 20px 24px 24px 24px;
+        box-shadow: 0 4px 16px rgba(30, 58, 95, 0.2);
     }
     
     .hero-title {
-        font-size: 2.3em;
-        font-weight: 800;
+        font-size: 2.2em;
+        font-weight: 700;
         color: #ffffff;
-        margin: 0 0 10px 0;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        margin: 0 0 8px 0;
     }
     
     .hero-subtitle {
-        font-size: 1.08em;
-        color: #b8cce6;
+        font-size: 1.05em;
+        color: #e0e7ff;
         margin: 0;
-        font-weight: 400;
     }
     
-    /* Карточки - чистый белый с тенью */
+    /* Карточки - белый */
     .info-card {
         background: #ffffff;
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 20px;
-        margin: 18px 0;
-        border: 1px solid #e8ecf1;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        margin: 16px 0;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
-    /* Кнопки - насыщенный синий с золотым при наведении */
+    /* Кнопки - синий */
     .stButton > button {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        background: #2563eb;
         color: #ffffff;
         border: none;
-        border-radius: 10px;
-        padding: 12px 30px;
+        border-radius: 8px;
+        padding: 12px 28px;
         font-weight: 600;
         font-size: 0.95em;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+        transition: all 0.2s ease;
     }
     
     .stButton > button:hover {
-        background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        background: #1d4ed8;
+        transform: translateY(-1px);
     }
     
     /* Загрузчик файлов */
     [data-testid="stFileUploader"] {
         background: #ffffff;
-        border-radius: 12px;
+        border-radius: 10px;
         padding: 24px;
-        border: 2px dashed #8fa5b8;
-        transition: all 0.3s ease;
+        border: 2px dashed #d1d5db;
     }
     
     [data-testid="stFileUploader"]:hover {
         border-color: #2563eb;
-        background: #f0f5fa;
+        background: #f0f9ff;
     }
     
-    /* ЧАТ - ЧЁТКОЕ РАЗДЕЛЕНИЕ */
+    /* ЧАТ - чёткое разделение */
     .chat-user-message {
-        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        background: #2563eb;
         color: #ffffff;
-        padding: 16px 20px;
-        border-radius: 16px 4px 16px 16px;
-        margin: 12px 0;
+        padding: 14px 18px;
+        border-radius: 12px 4px 12px 12px;
+        margin: 10px 0;
         max-width: 75%;
         margin-left: auto;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
     
     .chat-assistant-message {
         background: #ffffff;
-        color: #1e293b;
-        padding: 16px 20px;
-        border-radius: 4px 16px 16px 16px;
-        margin: 12px 0;
+        color: #1f2937;
+        padding: 14px 18px;
+        border-radius: 4px 12px 12px 12px;
+        margin: 10px 0;
         max-width: 75%;
-        border: 1px solid #e8ecf1;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
     }
     
     /* Разделители */
     hr {
-        border-color: #d0d7de;
-        margin: 24px 0;
+        border-color: #e5e7eb;
+        margin: 20px 0;
     }
 </style>
 """, unsafe_allow_html=True)
