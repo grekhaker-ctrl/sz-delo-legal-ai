@@ -130,7 +130,7 @@ st.markdown("""
         background: #eff6ff;
     }
     
-    /* ЧАТ - ЯРКОЕ РАЗДЕЛЕНИЕ */
+    /* ЧАТ - ЧЁТКОЕ РАЗДЕЛЕНИЕ БЕЗ РАМОК */
     .chat-user-message {
         background: #2563eb;
         color: #ffffff;
@@ -139,17 +139,25 @@ st.markdown("""
         margin: 8px 0;
         max-width: 75%;
         margin-left: auto;
-        border: 1px solid #1d4ed8;
     }
     
     .chat-assistant-message {
         background: #ffffff;
         color: #0f172a;
-        padding: 12px 16px;
+        padding: 14px 18px;
         border-radius: 4px 10px 10px 10px;
         margin: 8px 0;
         max-width: 75%;
-        border: 2px solid #3b82f6;
+        border-left: 4px solid #2563eb;
+        border-right: none;
+        border-top: none;
+        border-bottom: none;
+        line-height: 1.6;
+    }
+    
+    .chat-assistant-message p {
+        margin: 8px 0;
+        text-align: left;
     }
     
     hr {
@@ -316,7 +324,8 @@ def render_chat():
 3. ТОЧНЫЕ НОМЕРА СТАТЕЙ (ст. XXX ГК РФ)
 4. ТОЧНЫЕ СРОКИ И ЦИФРЫ
 5. АКТУАЛЬНОСТЬ НА 2025 ГОД
-6. БЕЗ ЗАГОЛОВКОВ (###) - пиши связным текстом
+6. БЕЗ МАРКДАУН ЗАГОЛОВКОВ (#, ##, ###)
+7. ИСПОЛЬЗУЙ АБЗАЦЫ - каждый блок с новой строки
 
 ФОРМАТ ОТВЕТА:
 
@@ -410,7 +419,8 @@ def render_analyze():
 2. МАКСИМУМ 450 СЛОВ
 3. ТОЧНЫЕ НОМЕРА СТАТЕЙ ГК РФ
 4. АКТУАЛЬНОСТЬ НА 2025
-5. БЕЗ ЗАГОЛОВКОВ (###)
+5. БЕЗ МАРКДАУН ЗАГОЛОВКОВ (#, ##, ###)
+6. ИСПОЛЬЗУЙ АБЗАЦЫ
 
 ФОРМАТ:
 
@@ -502,7 +512,8 @@ def render_conclusion():
 2. МАКСИМУМ 450 СЛОВ
 3. ТОЧНЫЕ НОМЕРА СТАТЕЙ ГК РФ
 4. АКТУАЛЬНОСТЬ НА 2025
-5. БЕЗ ЗАГОЛОВКОВ (###)
+5. БЕЗ МАРКДАУН ЗАГОЛОВКОВ (#, ##, ###)
+6. ИСПОЛЬЗУЙ АБЗАЦЫ
 
 ФОРМАТ:
 
