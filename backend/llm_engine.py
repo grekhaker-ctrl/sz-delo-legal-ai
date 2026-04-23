@@ -1,7 +1,8 @@
 """
-тLLM Engine - Polza AI + DeepSeek + GigaChat
+LLM Engine - Polza AI + DeepSeek + GigaChat
 """
 import os
+import re
 import logging
 from typing import List, Dict, Optional
 import requests
@@ -202,6 +203,9 @@ class PolzaAILLM:
             if not text:
                 return LLMResponse(text="", model=self.model, success=False, error="Пустой ответ")
             
+            # Очистка от некорректных символов (только кириллица, латиница, цифры, базовая пунктуация)
+            text = re.sub(r'[^\u0400-\u04FFa-zA-Z0-9\s.,;:!?\"\'()\-\/\\@#$%&*+=<>{}[\]|~`]', '', text)
+            
             return LLMResponse(text=text, model=self.model, success=True)
             
         except Exception as e:
@@ -265,6 +269,9 @@ class DeepSeekLLM:
             
             if not text:
                 return LLMResponse(text="", model=self.model, success=False, error="Пустой ответ")
+            
+            # Очистка от некорректных символов
+            text = re.sub(r'[^\u0400-\u04FFa-zA-Z0-9\s.,;:!?\"\'()\-\/\\@#$%&*+=<>{}[\]|~`]', '', text)
             
             return LLMResponse(text=text, model=self.model, success=True)
             
