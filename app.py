@@ -1,172 +1,358 @@
 """
 СЗ Дело | Юридический ИИ-агент
+Premium Legal AI Platform
 """
 import streamlit as st
 import os
+from pathlib import Path
+from datetime import datetime
+import hashlib
 
 st.set_page_config(
     page_title="СЗ Дело | Legal AI",
     page_icon="⚖️",
-    layout="centered",
+    layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ============================================================================
-# CSS STYLES
+# PREMIUM DESIGN SYSTEM
 # ============================================================================
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
     * {
-        font-family: 'Inter', sans-serif !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
     }
     
-    /* Main background */
+    /* Premium Color Palette */
+    :root {
+        --primary-50: #eff6ff;
+        --primary-100: #dbeafe;
+        --primary-500: #3b82f6;
+        --primary-600: #2563eb;
+        --primary-700: #1d4ed8;
+        --accent-500: #8b5cf6;
+        --accent-600: #7c3aed;
+        --success-500: #10b981;
+        --success-600: #059669;
+        --warning-500: #f59e0b;
+        --danger-500: #ef4444;
+        --danger-600: #dc2626;
+        --slate-50: #f8fafc;
+        --slate-100: #f1f5f9;
+        --slate-200: #e2e8f0;
+        --slate-300: #cbd5e1;
+        --slate-600: #475569;
+        --slate-700: #334155;
+        --slate-800: #1e293b;
+        --slate-900: #0f172a;
+    }
+    
+    /* App Background */
     .stApp {
-        background: #f5f5f7;
+        background: linear-gradient(135deg, #fafbfc 0%, #f0f2f5 50%, #e8ebef 100%);
+        background-attachment: fixed;
     }
     
-    /* Header */
-    .app-header {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        padding: 32px 0;
-        margin: -20px -20px 24px -20px;
-        text-align: center;
-        border-radius: 0 0 20px 20px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    /* Glassmorphism Cards */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.08),
+            0 2px 8px rgba(0, 0, 0, 0.04),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        padding: 28px;
+        margin: 20px 0;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    .app-title {
-        color: #ffffff;
-        font-size: 2.2em;
-        font-weight: 700;
-        margin: 0;
-        letter-spacing: -0.5px;
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 
+            0 20px 48px rgba(0, 0, 0, 0.12),
+            0 4px 12px rgba(0, 0, 0, 0.08),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     
-    .app-subtitle {
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
+        border-radius: 24px;
+        padding: 48px;
+        margin: 24px 0 32px 0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(30, 41, 59, 0.4);
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .hero-title {
+        font-size: 3em;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 0 12px 0;
+        letter-spacing: -1px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.25em;
         color: #94a3b8;
-        font-size: 1.1em;
-        margin: 8px 0 0 0;
+        margin: 0;
         font-weight: 400;
+        position: relative;
+        z-index: 1;
     }
     
-    /* Cards */
-    .info-card {
-        background: #ffffff;
-        border-radius: 12px;
+    /* Navigation Cards */
+    .nav-card {
+        background: white;
+        border-radius: 16px;
         padding: 24px;
+        margin: 12px 0;
+        border: 2px solid transparent;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nav-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    
+    .nav-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .nav-card:hover {
+        transform: translateX(8px);
+        border-color: #3b82f6;
+        box-shadow: 0 12px 24px rgba(59, 130, 246, 0.15);
+    }
+    
+    .nav-card.selected {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    }
+    
+    /* Risk Cards */
+    .risk-card {
+        padding: 24px;
+        border-radius: 16px;
         margin: 16px 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        border: 1px solid #e5e5e5;
+        border-left: 5px solid;
+        background: white;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
     }
     
-    /* Section titles */
-    .section-title {
-        font-size: 1.4em;
-        font-weight: 600;
-        color: #1a1a2e;
-        margin: 24px 0 16px 0;
-        padding-bottom: 8px;
-        border-bottom: 2px solid #3b82f6;
+    .risk-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     }
     
-    /* Buttons */
+    .risk-critical {
+        border-left-color: #dc2626;
+        background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    }
+    
+    .risk-high {
+        border-left-color: #ea580c;
+        background: linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%);
+    }
+    
+    .risk-medium {
+        border-left-color: #d97706;
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    }
+    
+    .risk-low {
+        border-left-color: #059669;
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    }
+    
+    /* Buttons - Premium Style */
     .stButton > button {
-        background: #3b82f6;
-        color: #ffffff;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
         border: none;
-        border-radius: 8px;
-        padding: 12px 24px;
+        border-radius: 12px;
+        padding: 14px 36px;
         font-weight: 600;
-        font-size: 0.95em;
-        transition: all 0.2s;
+        font-size: 1em;
+        letter-spacing: 0.3px;
+        box-shadow: 
+            0 4px 16px rgba(59, 130, 246, 0.4),
+            0 2px 8px rgba(59, 130, 246, 0.2);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .stButton > button:hover::before {
+        width: 300px;
+        height: 300px;
     }
     
     .stButton > button:hover {
-        background: #2563eb;
-        transform: translateY(-1px);
+        transform: translateY(-3px);
+        box-shadow: 
+            0 12px 28px rgba(59, 130, 246, 0.5),
+            0 4px 12px rgba(59, 130, 246, 0.3);
     }
     
-    /* Status */
-    .status-ok {
-        display: inline-block;
-        padding: 4px 12px;
-        background: #d1fae5;
+    /* Status Badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin: 6px 8px 6px 0;
+        backdrop-filter: blur(8px);
+    }
+    
+    .status-success {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
         color: #065f46;
-        border-radius: 6px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin: 4px 4px 4px 0;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
     }
     
-    .status-err {
-        display: inline-block;
-        padding: 4px 12px;
-        background: #fee2e2;
+    .status-error {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
         color: #991b1b;
-        border-radius: 6px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin: 4px 4px 4px 0;
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
     }
     
-    /* Sidebar */
+    /* Sidebar Premium */
     [data-testid="stSidebar"] {
-        background: #ffffff;
-        border-right: 1px solid #e5e5e5;
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* File uploader */
-    [data-testid="stFileUploader"] {
-        background: #ffffff;
-        border: 2px dashed #d1d5db;
-        border-radius: 8px;
-        padding: 20px;
+    [data-testid="stSidebar"] * {
+        color: #f1f5f9 !important;
     }
     
-    /* Chat */
-    .chat-message {
-        padding: 16px 20px;
-        border-radius: 12px;
-        margin: 12px 0;
-        max-width: 85%;
-    }
-    
+    /* Chat Messages */
     .chat-user {
-        background: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
-        margin-left: auto;
-        border-radius: 12px 12px 4px 12px;
-    }
-    
-    .chat-bot {
-        background: #ffffff;
-        color: #1a1a2e;
-        border: 1px solid #e5e5e5;
-        border-radius: 12px 12px 12px 4px;
-    }
-    
-    /* Risk cards */
-    .risk-box {
-        padding: 16px;
-        border-radius: 8px;
+        padding: 16px 20px;
+        border-radius: 20px 20px 4px 20px;
         margin: 12px 0;
-        border-left: 4px solid;
-        background: #ffffff;
+        max-width: 80%;
+        margin-left: auto;
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
     }
     
-    .risk-critical { border-left-color: #dc2626; background: #fef2f2; }
-    .risk-high { border-left-color: #ea580c; background: #fff7ed; }
-    .risk-medium { border-left-color: #d97706; background: #fef3c7; }
-    .risk-low { border-left-color: #10b981; background: #f0fdf4; }
+    .chat-assistant {
+        background: white;
+        color: #1e293b;
+        padding: 16px 20px;
+        border-radius: 20px 20px 20px 4px;
+        margin: 12px 0;
+        max-width: 80%;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+    
+    /* File Upload */
+    [data-testid="stFileUploader"] {
+        background: white;
+        border-radius: 16px;
+        padding: 32px;
+        border: 2px dashed #cbd5e1;
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #3b82f6;
+        background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    }
     
     /* Divider */
     hr {
-        border-color: #e5e5e5;
-        margin: 24px 0;
+        border: none;
+        border-top: 1px solid #e2e8f0;
+        margin: 32px 0;
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .glass-card, .risk-card, .nav-card {
+        animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -186,33 +372,43 @@ if 'analyzed_contract' not in st.session_state:
 
 with st.sidebar:
     st.markdown("""
-    <div style="text-align: center; padding: 20px 0;">
+    <div style="text-align: center; padding: 32px 20px;">
         <div style="
-            width: 64px;
-            height: 64px;
-            background: #3b82f6;
-            border-radius: 12px;
-            display: inline-flex;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            border-radius: 20px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
-            margin-bottom: 12px;
+            margin: 0 auto 16px;
+            box-shadow: 0 12px 24px rgba(59, 130, 246, 0.4);
+            font-size: 2.5em;
         ">⚖️</div>
-        <h2 style="margin: 0; color: #1a1a2e; font-size: 1.5em;">СЗ ДЕЛО</h2>
-        <p style="color: #6b7280; margin: 4px 0 0 0; font-size: 0.9em;">Юридический ИИ</p>
+        <h1 style="
+            font-size: 1.8em;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        ">СЗ ДЕЛО</h1>
+        <p style="color: #94a3b8; margin: 8px 0 0 0; font-size: 0.95em;">Legal AI Platform</p>
     </div>
     """, unsafe_allow_html=True)
     
     st.divider()
     
-    st.markdown("**Навигация**")
+    st.markdown("### 🧭 Меню")
+    
     menu = st.radio(
         "Разделы",
         [
-            "💬 Чат",
+            "💬 Чат с юристом",
             "📄 Анализ договора",
             "⚖️ Заключение",
-            "🔄 Сравнение",
+            "🔄 Сравнение версий",
         ],
         label_visibility="collapsed",
         index=0
@@ -220,64 +416,58 @@ with st.sidebar:
     
     st.divider()
     
-    st.markdown("**Статус**")
+    st.markdown("### 🔧 Статус")
     try:
         from backend.llm_engine import create_llm_engine
         llm = create_llm_engine()
         status = llm.get_status()
         for name, ok in status.items():
             if ok:
-                st.markdown(f'<span class="status-ok">✓ {name}</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="status-badge status-success">● {name}</span>', unsafe_allow_html=True)
             else:
-                st.markdown(f'<span class="status-err">✗ {name}</span>', unsafe_allow_html=True)
+                st.markdown(f'<span class="status-badge status-error">● {name}</span>', unsafe_allow_html=True)
     except:
-        st.markdown('<span class="status-err">Нет подключения</span>', unsafe_allow_html=True)
+        pass
     
     st.divider()
     
     st.markdown("""
-    <div style="color: #6b7280; font-size: 0.85em; line-height: 1.6;">
-        <p><strong>🏢</strong> СЗ Дело</p>
-        <p><strong>🏗️</strong> Девелопмент</p>
-        <p><strong>🤖</strong> Polza AI</p>
+    <div style="color: #64748b; font-size: 0.85em; line-height: 1.8; padding: 0 8px;">
+        <p style="margin: 4px 0;"><strong>🏢</strong> СЗ Дело</p>
+        <p style="margin: 4px 0;"><strong>🏗️</strong> Строительство</p>
+        <p style="margin: 4px 0;"><strong>🤖</strong> Polza AI</p>
     </div>
     """, unsafe_allow_html=True)
     
     st.divider()
     
-    if st.button("🗑️ Очистить", use_container_width=True):
+    if st.button("🗑️ Очистить чат", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
-
-# ============================================================================
-# HEADER
-# ============================================================================
-
-st.markdown("""
-<div class="app-header">
-    <h1 class="app-title">⚖️ СЗ ДЕЛО</h1>
-    <p class="app-subtitle">Юридический ИИ-агент</p>
-</div>
-""", unsafe_allow_html=True)
 
 # ============================================================================
 # FUNCTIONS
 # ============================================================================
 
 def render_chat():
-    st.markdown('<p class="section-title">💬 Чат с юристом</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="hero-section">
+        <h1 class="hero-title">💬 Чат с ИИ-юристом</h1>
+        <p class="hero-subtitle">Профессиональные юридические консультации 24/7</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
     
-    if prompt := st.chat_input("Ваш вопрос..."):
+    if prompt := st.chat_input("Задайте юридический вопрос..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
         
         with st.chat_message("assistant"):
-            with st.spinner("Думаю..."):
+            with st.spinner("🤖 Анализирую..."):
                 try:
                     from backend.llm_engine import create_llm_engine
                     from backend.legal_kb import create_legal_kb
@@ -293,26 +483,36 @@ def render_chat():
 
 
 def render_analyze():
-    st.markdown('<p class="section-title">📄 Анализ договора</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="hero-section">
+        <h1 class="hero-title">📄 Анализ договора</h1>
+        <p class="hero-subtitle">ИИ найдёт риски и предложит исправления</p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    uploaded_file = st.file_uploader("Загрузите договор (PDF, DOCX, TXT)", type=['pdf', 'docx', 'txt'])
+    uploaded_file = st.file_uploader("Загрузите договор", type=['pdf', 'docx', 'txt'])
     
     if uploaded_file:
+        # Сохраняем временный файл
+        temp_path = f"temp_{uploaded_file.name}"
+        with open(temp_path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+        
         st.markdown(f"""
-        <div class="info-card">
-            <strong>📎 Файл:</strong> {uploaded_file.name}<br>
-            <strong>📊 Размер:</strong> {uploaded_file.size / 1024:.1f} КБ
+        <div class="glass-card">
+            <strong>📎</strong> {uploaded_file.name} &nbsp;|&nbsp; 
+            <strong>📊</strong> {uploaded_file.size / 1024:.1f} КБ
         </div>
         """, unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         with col1:
-            analyze_risks = st.checkbox("Анализ рисков", value=True)
+            analyze_risks = st.checkbox("✅ Анализ рисков", value=True)
         with col2:
-            fix_contract = st.checkbox("Исправить текст", value=True)
+            fix_contract = st.checkbox("✅ Исправить текст", value=True)
         
         if st.button("🔍 Начать анализ", type="primary", use_container_width=True):
-            with st.spinner("Анализирую..."):
+            with st.spinner("🤖 Анализирую..."):
                 try:
                     from backend.document_parser import create_parser
                     from backend.llm_engine import create_llm_engine
@@ -323,44 +523,48 @@ def render_analyze():
                     llm = create_llm_engine()
                     
                     if analyze_risks:
-                        st.markdown("### 📊 Риски")
+                        st.markdown("### 📊 Анализ рисков")
                         risk_prompt = f"""
-Проанализируй договор для СЗ Дело.
+Проанализируй договор для СЗ Дело (Москва/МО).
 
 Текст:
 {contract_text[:10000]}
 
-Найди:
-1. Риски со статьями ГК РФ
-2. Рекомендации
-
 Формат:
-### Риски
-1. [Риск] - [Статья ГК] - [Уровень]
+### 🔍 Тип договора
+[Определение]
 
-### Рекомендации
-[Советы]
+### ⚠️ Риски
+1. [Риск] - [Статья ГК] - [Уровень]
+2. ...
+
+### 📋 Рекомендации
 """
                         response = llm.generate(risk_prompt, task="answer")
                         st.markdown(response.text)
                     
                     if fix_contract:
-                        st.markdown("### ✨ Исправления")
+                        st.markdown("### ✨ Исправленная версия")
                         fix_prompt = f"""
-Исправь договор для СЗ Дело.
+Исправь договор для строительной компании СЗ Дело (Москва/МО).
 
-Текст:
+Оригинальный текст:
 {contract_text[:10000]}
 
-Формат СТРОГО:
+Твоя задача:
+1. Найти все рискованные пункты
+2. Предложить ИСПРАВЛЕННЫЙ текст
+3. Указать КОНКРЕТНЫЕ статьи ГК РФ
+
+Формат ответа СТРОГО:
 ### Анализ
-[Кратко]
+[Кратко: тип, стороны, предмет]
 
 ### Проблемы
-1. [Пункт] - [Проблема] - [Статья ГК]
+1. [Пункт] - [Проблема] - [Статья ГК РФ]
 
 ### Исправленный текст
-[ПОЛНЫЙ текст]
+[ПОЛНЫЙ текст договора]
 
 ### Таблица
 | № | Было | Стало | Причина |
@@ -368,22 +572,34 @@ def render_analyze():
                         response = llm.generate(fix_prompt, task="fix_contract")
                         st.markdown(response.text)
                         
+                        # TXT скачать
+                        st.download_button(
+                            label="📥 Скачать TXT",
+                            data=response.text.encode('utf-8'),
+                            file_name=f"fixed_{uploaded_file.name}.txt",
+                            mime="text/plain; charset=utf-8",
+                            use_container_width=True
+                        )
+                        
                         # PDF
                         try:
                             from fpdf import FPDF
+                            
                             pdf = FPDF()
                             pdf.add_page()
                             pdf.set_auto_page_break(auto=True, margin=15)
                             
+                            # Шрифт с кириллицей
                             font_path = "/tmp/DejaVuSans.ttf"
-                            try:
-                                import urllib.request
-                                urllib.request.urlretrieve(
-                                    "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf",
-                                    font_path
-                                )
-                            except:
-                                pass
+                            if not os.path.exists(font_path):
+                                try:
+                                    import urllib.request
+                                    urllib.request.urlretrieve(
+                                        "https://cdn.jsdelivr.net/gh/dejavu-fonts/dejavu-fonts@master/ttf/DejaVuSans.ttf",
+                                        font_path
+                                    )
+                                except:
+                                    pass
                             
                             if os.path.exists(font_path):
                                 pdf.add_font("DejaVu", "", font_path, uni=True)
@@ -391,17 +607,24 @@ def render_analyze():
                             else:
                                 pdf.set_font("Arial", "", 10)
                             
+                            # Заголовок
                             pdf.set_font_size(14)
-                            pdf.cell(0, 10, "ИСПРАВЛЕННЫЙ ДОГОВОР", ln=True, align="C")
+                            pdf.cell(0, 10, "ISPRAVLENNIY DOGOVOR", ln=True, align="C")
                             pdf.set_font_size(10)
-                            pdf.cell(0, 10, f"Файл: {uploaded_file.name}", ln=True, align="C")
+                            pdf.cell(0, 10, f"Original: {uploaded_file.name}", ln=True, align="C")
                             pdf.ln(10)
                             
+                            # Текст
                             pdf.set_font_size(10)
                             for line in response.text.split("\n"):
+                                # Очистка от markdown
                                 clean = line.replace("#", "").replace("*", "").replace("-", "").strip()
                                 if clean:
-                                    pdf.multi_cell(0, 8, clean)
+                                    # Кодируем для PDF
+                                    try:
+                                        pdf.multi_cell(0, 8, clean.encode('latin-1', errors='ignore').decode('latin-1'))
+                                    except:
+                                        pdf.multi_cell(0, 8, clean[:100])
                             
                             pdf_path = f"fixed_{uploaded_file.name}.pdf"
                             pdf.output(pdf_path)
@@ -417,23 +640,23 @@ def render_analyze():
                             
                             if os.path.exists(pdf_path):
                                 os.remove(pdf_path)
-                        except:
-                            st.download_button(
-                                label="📥 Скачать TXT",
-                                data=response.text,
-                                file_name=f"fixed_{uploaded_file.name}.txt",
-                                use_container_width=True
-                            )
-                    
+                                
+                        except Exception as pdf_error:
+                            st.warning(f"PDF ошибка: {str(pdf_error)[:200]}")
                 except Exception as e:
                     st.error(f"Ошибка: {str(e)}")
                 finally:
-                    if os.path.exists(f"temp_{uploaded_file.name}"):
-                        os.remove(f"temp_{uploaded_file.name}")
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
 
 
 def render_conclusion():
-    st.markdown('<p class="section-title">⚖️ Юридическое заключение</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="hero-section">
+        <h1 class="hero-title">⚖️ Юридическое заключение</h1>
+        <p class="hero-subtitle">Профессиональное заключение по договору</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader("Загрузите договор", type=['pdf', 'docx', 'txt'])
     
@@ -460,7 +683,7 @@ def render_conclusion():
 
 Формат:
 1. Тип договора
-2. Вывод (✅/⚠️/❌)
+2. Заключение (✅/⚠️/❌)
 3. Риски
 4. Рекомендации
 """
@@ -474,7 +697,12 @@ def render_conclusion():
 
 
 def render_compare():
-    st.markdown('<p class="section-title">🔄 Сравнение версий</p>', unsafe_allow_html=True)
+    st.markdown("""
+    <div class="hero-section">
+        <h1 class="hero-title">🔄 Сравнение версий</h1>
+        <p class="hero-subtitle">Найдите различия между версиями договора</p>
+    </div>
+    """, unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
@@ -498,7 +726,7 @@ def render_compare():
                     comparator = create_comparator()
                     result = comparator.compare_and_explain(temp1, temp2)
                     
-                    st.markdown(f"### Найдено изменений: {result['total_changes']}")
+                    st.markdown(f"### Изменений: {result['total_changes']}")
                     st.components.v1.html(result['diff_html'], height=400)
                     st.markdown(result['legal_analysis'])
                 except Exception as e:
@@ -512,15 +740,19 @@ def render_compare():
 # MAIN
 # ============================================================================
 
-if menu == "💬 Чат":
+if menu == "💬 Чат с юристом":
     render_chat()
 elif menu == "📄 Анализ договора":
     render_analyze()
 elif menu == "⚖️ Заключение":
     render_conclusion()
-elif menu == "🔄 Сравнение":
+elif menu == "🔄 Сравнение версий":
     render_compare()
 
-# Footer
 st.divider()
-st.markdown('<p style="text-align: center; color: #9ca3af; font-size: 0.85em;">© 2025 СЗ Дело | Legal AI</p>', unsafe_allow_html=True)
+st.markdown("""
+<div style="text-align: center; color: #94a3b8; font-size: 0.85em; padding: 24px;">
+    <p style="margin: 0;">© 2025 СЗ Дело | Legal AI Platform</p>
+    <p style="margin: 8px 0 0 0;">Powered by Polza AI</p>
+</div>
+""", unsafe_allow_html=True)

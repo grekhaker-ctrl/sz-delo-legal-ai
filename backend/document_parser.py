@@ -49,10 +49,12 @@ class DocumentParser:
             return ""
     
     def _parse_txt(self, path: str) -> str:
-        for enc in ['utf-8', 'cp1251', 'koi8-r']:
+        for enc in ['utf-8', 'cp1251', 'koi8-r', 'latin-1']:
             try:
-                with open(path, 'r', encoding=enc) as f: return f.read()
-            except: pass
+                with open(path, 'r', encoding=enc, errors='replace') as f:
+                    return f.read()
+            except:
+                pass
         return ""
     
     def _try_generic(self, path: str) -> str:
