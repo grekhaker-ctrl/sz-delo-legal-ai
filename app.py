@@ -34,8 +34,6 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    /* НЕ скрываем header и меню - нужны для навигации */
-    
     /* Шрифт */
     * {
         font-family: 'Inter', sans-serif !important;
@@ -57,6 +55,22 @@ st.markdown("""
     
     /* Кнопку закрытия sidebar скрываем */
     button[title="Close sidebar"] {
+        display: none !important;
+    }
+    
+    /* Скрываем английские placeholder Streamlit */
+    .stFileUploader > div > p,
+    .stFileUploader > div > div > p,
+    [data-testid="stFileUploader"] > div > p,
+    [data-testid="stFileUploader"] small,
+    [data-testid="stFileUploader"] p {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+    }
+    
+    /* Скрываем drag and drop текст */
+    [data-testid="stFileUploader"] [data-testid="baseButton"] {
         display: none !important;
     }
     
@@ -305,7 +319,7 @@ def render_analyze():
     st.markdown("### 📁 Загрузите файл договора")
     st.markdown("*Форматы: PDF, DOCX, TXT*")
     
-    uploaded_file = st.file_uploader("", type=['pdf', 'docx', 'txt'])
+    uploaded_file = st.file_uploader("drag_and_drop_placeholder", type=['pdf', 'docx', 'txt'], label_visibility="collapsed")
     
     if uploaded_file:
         temp_path = f"temp_{uploaded_file.name}"
@@ -409,7 +423,7 @@ def render_conclusion():
     """, unsafe_allow_html=True)
     
     st.markdown("### 📁 Загрузите файл")
-    uploaded_file = st.file_uploader("", type=['pdf', 'docx', 'txt'])
+    uploaded_file = st.file_uploader("drag_and_drop_placeholder", type=['pdf', 'docx', 'txt'], label_visibility="collapsed")
     
     if uploaded_file:
         temp_path = f"temp_{uploaded_file.name}"
@@ -463,10 +477,10 @@ def render_compare():
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("**Версия 1**")
-        file1 = st.file_uploader("", type=['pdf', 'docx', 'txt'], key="v1")
+        file1 = st.file_uploader("drag_and_drop_placeholder", type=['pdf', 'docx', 'txt'], key="v1", label_visibility="collapsed")
     with col2:
         st.markdown("**Версия 2**")
-        file2 = st.file_uploader("", type=['pdf', 'docx', 'txt'], key="v2")
+        file2 = st.file_uploader("drag_and_drop_placeholder", type=['pdf', 'docx', 'txt'], key="v2", label_visibility="collapsed")
     
     if file1 and file2:
         temp1 = f"temp_v1_{file1.name}"
