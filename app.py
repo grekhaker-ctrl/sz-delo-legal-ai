@@ -352,9 +352,9 @@ def render_chat():
 Срок исковой давности по договору подряда составляет 3 года (ст. 196 ГК РФ).
 
 Правовое основание:
-- Статья 196 ГК РФ: общий срок исковой давности 3 года
-- Статья 200 ГК РФ: начало с момента нарушения
-- Статья 725 ГК РФ: специальный срок по подряду
+- Статья 196 ГК РФ: общий срок исковой давности 3 года (https://www.consultant.ru/document/cons_doc_LAW_28165/)
+- Статья 200 ГК РФ: начало с момента нарушения (https://www.consultant.ru/document/cons_doc_LAW_28165/)
+- Статья 725 ГК РФ: специальный срок по подряду (https://www.consultant.ru/document/cons_doc_LAW_28165/)
 
 Согласно ст. 725 ГК РФ, срок исковой давности по требованиям о недостатках работы начинается с момента сдачи работы заказчику. Если недостатки обнаружены позднее, срок исчисляется с момента их обнаружения. Срок нельзя восстановить после истечения.
 
@@ -370,7 +370,7 @@ def render_chat():
 4. Подавайте иск в течение 3 лет
 5. Храните документы 4 года
 
-Источник: КонсультантПлюс 2025 (https://www.consultant.ru)
+Источник: КонсультантПлюс 2025 (https://www.consultant.ru/document/cons_doc_LAW_28165/)
 """
                 
                 response = llm.generate(enhanced_prompt, context=context, task="answer")
@@ -451,11 +451,11 @@ def render_analyze():
 2. [второе действие]
 3. [третье действие]
 
-Сроки и последствия:
-- [конкретный срок 1]
-- [конкретный срок 2]
+Ссылки на статьи:
+- Ст. XXX ГК РФ: https://www.consultant.ru/document/cons_doc_LAW_28165/
+- Ст. YYY ГК РФ: https://www.consultant.ru/document/cons_doc_LAW_28165/
 
-Источник: КонсультантПлюс 2025 (https://www.consultant.ru)
+Источник: КонсультантПлюс 2025 (https://www.consultant.ru/document/cons_doc_LAW_28165/)
 """
                         response = llm.generate(risk_prompt, task="answer")
                         st.markdown(response.text)
@@ -552,7 +552,10 @@ def render_conclusion():
 2. [второе действие]
 3. [третье действие]
 
-Источник: КонсультантПлюс 2025 (https://www.consultant.ru)
+Ссылки на статьи:
+- Ст. XXX ГК РФ: https://www.consultant.ru/document/cons_doc_LAW_28165/
+
+Источник: КонсультантПлюс 2025 (https://www.consultant.ru/document/cons_doc_LAW_28165/)
 """
                     response = llm.generate(prompt)
                     st.markdown(response.text)
