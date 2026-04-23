@@ -12,6 +12,20 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Принудительно держим sidebar открытым
+st.markdown("""
+<script>
+    function keepSidebarOpen() {
+        var sidebar = document.querySelector('[data-testid="stSidebar"]');
+        if (sidebar) {
+            sidebar.style.display = 'block';
+        }
+    }
+    setInterval(keepSidebarOpen, 500);
+    keepSidebarOpen();
+</script>
+""", unsafe_allow_html=True)
+
 # ============================================================================
 # CSS - Меню всегда видно + чёткий дизайн
 # ============================================================================
@@ -20,24 +34,30 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    /* Скрываем стандартные элементы */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    
-    /* Блокируем закрытие sidebar */
-    button[title="Close sidebar"] {
-        display: none !important;
-    }
+    /* НЕ скрываем header и меню - нужны для навигации */
     
     /* Шрифт */
     * {
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Фон */
+    /* Фон приложения */
     .stApp {
         background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+    }
+    
+    /* Sidebar - делаем заметнее */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #1e3a5f 0%, #2d5a87 100%);
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: #ffffff !important;
+    }
+    
+    /* Кнопку закрытия sidebar скрываем */
+    button[title="Close sidebar"] {
+        display: none !important;
     }
     
     /* Hero секция */
@@ -125,6 +145,41 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # ============================================================================
+# КНОПКА ОТКРЫТИЯ SIDEBAR (если закрыт)
+# ============================================================================
+
+st.markdown("""
+<style>
+    .sidebar-open-btn {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        z-index: 9999;
+    }
+</style>
+<div class="sidebar-open-btn">
+    <button onclick="
+        var sidebar = document.querySelector('[data-testid=\"stSidebar\"]');
+        if (sidebar) {
+            sidebar.style.display = 'block';
+            var btn = document.querySelector('[title=\"Open sidebar\"]');
+            if (btn) btn.click();
+        }
+        return false;
+    " style="
+        background: #1e3a5f;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-size: 1.3em;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    ">☰ Меню</button>
+</div>
+""", unsafe_allow_html=True)
+
+# ============================================================================
 # Состояние
 # ============================================================================
 
@@ -195,7 +250,7 @@ with st.sidebar:
         <p style="color: #bfdbfe; word-break: break-all;">https://sz-delo-legal-ai.streamlit.app</p>
     </div>
     """, unsafe_allow_html=True)
-
+    
 # ============================================================================
 # ФУНКЦИИ
 # ============================================================================
