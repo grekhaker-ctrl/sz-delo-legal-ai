@@ -34,32 +34,30 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    /* Шрифт */
     * {
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Фон приложения - нейтральный светлый */
+    /* Фон приложения - светлый серый */
     .stApp {
-        background: #f8f9fa;
+        background: #f0f2f5;
     }
     
-    /* Sidebar - классический тёмно-синий */
+    /* Sidebar - тёмно-синий ЧЁТКИЙ */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1e3a5f 0%, #1a283a 100%) !important;
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+        background: #0f172a !important;
+        border-right: 3px solid #1e40af !important;
     }
     
     [data-testid="stSidebar"] * {
         color: #ffffff !important;
     }
     
-    /* Кнопку закрытия sidebar скрываем */
     button[title="Close sidebar"] {
         display: none !important;
     }
     
-    /* Скрываем английские placeholder Streamlit */
+    /* Скрываем английские placeholder */
     .stFileUploader > div > p,
     .stFileUploader > div > div > p,
     [data-testid="stFileUploader"] > div > p,
@@ -67,101 +65,100 @@ st.markdown("""
     [data-testid="stFileUploader"] p {
         display: none !important;
         opacity: 0 !important;
-        visibility: hidden !important;
     }
     
-    /* Скрываем drag and drop текст */
     [data-testid="stFileUploader"] [data-testid="baseButton"] {
         display: none !important;
     }
     
-    /* Hero секция - классический синий */
+    /* Hero секция - ЯРКИЙ синий */
     .hero-section {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
-        border-radius: 12px;
-        padding: 32px 40px;
-        margin: 20px 24px 24px 24px;
-        box-shadow: 0 4px 16px rgba(30, 58, 95, 0.2);
+        background: #1e40af;
+        border-radius: 8px;
+        padding: 28px 36px;
+        margin: 16px 20px 20px 20px;
+        border: 2px solid #1e3a8a;
     }
     
     .hero-title {
-        font-size: 2.2em;
+        font-size: 2em;
         font-weight: 700;
         color: #ffffff;
         margin: 0 0 8px 0;
     }
     
     .hero-subtitle {
-        font-size: 1.05em;
-        color: #e0e7ff;
+        font-size: 1em;
+        color: #bfdbfe;
         margin: 0;
     }
     
-    /* Карточки - белый */
+    /* Карточки - белый с ЧЁТКОЙ рамкой */
     .info-card {
         background: #ffffff;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 16px 0;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        padding: 18px;
+        margin: 14px 0;
+        border: 2px solid #cbd5e1;
     }
     
-    /* Кнопки - синий */
+    /* Кнопки - ЯРКИЙ синий */
     .stButton > button {
         background: #2563eb;
         color: #ffffff;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 28px;
+        border: 2px solid #1d4ed8;
+        border-radius: 6px;
+        padding: 10px 26px;
         font-weight: 600;
         font-size: 0.95em;
-        transition: all 0.2s ease;
     }
     
     .stButton > button:hover {
         background: #1d4ed8;
-        transform: translateY(-1px);
     }
     
-    /* Загрузчик файлов */
+    /* Загрузчик файлов - ЧЁТКИЙ */
     [data-testid="stFileUploader"] {
         background: #ffffff;
-        border-radius: 10px;
-        padding: 24px;
-        border: 2px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 20px;
+        border: 2px dashed #64748b;
     }
     
     [data-testid="stFileUploader"]:hover {
         border-color: #2563eb;
-        background: #f0f9ff;
+        background: #eff6ff;
     }
     
-    /* ЧАТ - чёткое разделение */
+    /* ЧАТ - ЯРКОЕ РАЗДЕЛЕНИЕ */
     .chat-user-message {
         background: #2563eb;
         color: #ffffff;
-        padding: 14px 18px;
-        border-radius: 12px 4px 12px 12px;
-        margin: 10px 0;
+        padding: 12px 16px;
+        border-radius: 10px 4px 10px 10px;
+        margin: 8px 0;
         max-width: 75%;
         margin-left: auto;
+        border: 1px solid #1d4ed8;
     }
     
     .chat-assistant-message {
         background: #ffffff;
-        color: #1f2937;
-        padding: 14px 18px;
-        border-radius: 4px 12px 12px 12px;
-        margin: 10px 0;
+        color: #0f172a;
+        padding: 12px 16px;
+        border-radius: 4px 10px 10px 10px;
+        margin: 8px 0;
         max-width: 75%;
-        border: 1px solid #e5e7eb;
+        border: 2px solid #3b82f6;
     }
     
-    /* Разделители */
     hr {
-        border-color: #e5e7eb;
-        margin: 20px 0;
+        border-color: #cbd5e1;
+        margin: 16px 0;
+    }
+    
+    strong {
+        color: #0f172a !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -189,14 +186,13 @@ st.markdown("""
         }
         return false;
     " style="
-        background: #1a284a;
+        background: #0f172a;
         color: white;
-        border: none;
-        border-radius: 8px;
+        border: 2px solid #1e40af;
+        border-radius: 6px;
         padding: 10px 16px;
         font-size: 1.3em;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     ">☰ Меню</button>
 </div>
 """, unsafe_allow_html=True)
@@ -267,9 +263,9 @@ with st.sidebar:
     # Ссылка на приложение
     st.divider()
     st.markdown("""
-    <div style="color: #b8cce6; font-size: 0.8em; padding: 0 8px; line-height: 1.7;">
+    <div style="color: #94a3b8; font-size: 0.8em; padding: 0 8px; line-height: 1.7;">
         <p><strong>🌐 Ссылка:</strong></p>
-        <p style="color: #e8f0f8; word-break: break-all;">https://sz-delo-legal-ai.streamlit.app</p>
+        <p style="color: #bfdbfe; word-break: break-all;">https://sz-delo-legal-ai.streamlit.app</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -582,4 +578,4 @@ elif menu == "🔄 Сравнение версий":
 
 # Footer
 st.divider()
-st.markdown('<p style="text-align: center; color: #8fa5b8; font-size: 0.83em; padding: 18px;">© 2025 СЗ Дело | Юридический ИИ</p>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #64748b; font-size: 0.83em; padding: 18px;">© 2025 СЗ Дело | Юридический ИИ</p>', unsafe_allow_html=True)
