@@ -12,50 +12,49 @@ st.set_page_config(
 )
 
 # ============================================================================
-# CSS - Улучшенный дизайн
+# CSS - Полный русский интерфейс + фиксы
 # ============================================================================
 
 st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     
-    /* Скрываем лишнее */
+    /* Скрываем стандартные элементы Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    * {
-        font-family: 'Inter', sans-serif !important;
+    /* Принудительно скрываем все английские надписи */
+    [data-testid="stWidgetLabel"] {
+        display: none !important;
     }
     
-    /* Фон приложения */
+    /* Фиксируем Sidebar */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        overflow: hidden !important;
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: #f1f5f9 !important;
+    }
+    
+    [data-testid="stSidebar"] .stVerticalBlock {
+        overflow: hidden !important;
+    }
+    
+    /* Главный контейнер */
     .stApp {
         background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-        background-attachment: fixed;
     }
     
-    /* Карточки */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.98);
-        border-radius: 16px;
-        padding: 24px;
-        margin: 16px 0;
-        border: 1px solid rgba(226, 232, 240, 0.8);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-    }
-    
-    .glass-card:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        transform: translateY(-2px);
-    }
-    
-    /* Hero секция */
+    /* Hero секция - исправленное позиционирование */
     .hero-section {
         background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%);
         border-radius: 16px;
-        padding: 40px;
-        margin: 0 0 24px 0;
+        padding: 40px 48px;
+        margin: 24px 24px 32px 24px;
         box-shadow: 0 8px 32px rgba(30, 58, 95, 0.3);
     }
     
@@ -72,6 +71,16 @@ st.markdown("""
         color: #bfdbfe;
         margin: 0;
         font-weight: 400;
+    }
+    
+    /* Карточки */
+    .info-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 16px 0;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
     
     /* Кнопки */
@@ -93,40 +102,12 @@ st.markdown("""
         box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
     }
     
-    /* Заголовки разделов */
-    .section-title {
-        font-size: 1.5em;
-        font-weight: 700;
-        color: #1e293b;
-        margin: 24px 0 16px 0;
-        padding-bottom: 8px;
-        border-bottom: 3px solid #3b82f6;
-    }
-    
-    /* Sidebar - фиксированный */
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-        overflow: hidden !important;
-        position: fixed !important;
-        height: 100vh !important;
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: #f1f5f9 !important;
-    }
-    
-    [data-testid="stSidebar"] .stVerticalBlock {
-        overflow: hidden !important;
-    }
-    
-    /* Загрузчик файлов */
+    /* Загрузчик файлов - русификация через CSS */
     [data-testid="stFileUploader"] {
         background: #ffffff;
         border-radius: 12px;
         padding: 24px;
         border: 2px dashed #94a3b8;
-        transition: all 0.3s ease;
     }
     
     [data-testid="stFileUploader"]:hover {
@@ -134,45 +115,43 @@ st.markdown("""
         background: #eff6ff;
     }
     
-    /* Чат */
-    .chat-user {
+    /* Чат - чёткое разделение */
+    .chat-message-user {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff;
-        padding: 14px 18px;
-        border-radius: 16px 16px 4px 16px;
-        margin: 10px 0;
-        max-width: 80%;
+        padding: 16px 20px;
+        border-radius: 16px 4px 16px 16px;
+        margin: 12px 0;
+        max-width: 75%;
         margin-left: auto;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
     
-    .chat-assistant {
+    .chat-message-assistant {
         background: #ffffff;
         color: #1e293b;
-        padding: 14px 18px;
-        border-radius: 16px 16px 16px 4px;
-        margin: 10px 0;
-        max-width: 80%;
-        border: 1px solid #e2e8f0;
-    }
-    
-    /* Риски */
-    .risk-box {
-        padding: 16px;
-        border-radius: 10px;
+        padding: 16px 20px;
+        border-radius: 4px 16px 16px 16px;
         margin: 12px 0;
-        border-left: 4px solid;
-        background: #ffffff;
+        max-width: 75%;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
-    .risk-critical { border-left-color: #dc2626; background: #fef2f2; }
-    .risk-high { border-left-color: #ea580c; background: #fff7ed; }
-    .risk-medium { border-left-color: #d97706; background: #fef3c7; }
-    .risk-low { border-left-color: #10b981; background: #f0fdf4; }
-    
-    /* Разделитель */
+    /* Разделители */
     hr {
         border-color: #e2e8f0;
         margin: 24px 0;
+    }
+    
+    /* Скрываем стандартные label у file uploader */
+    .stFileUploader label {
+        display: none !important;
+    }
+    
+    /* Скрываем "Drag and drop" */
+    [data-testid="stFileUploaderDropzone"] p {
+        display: none !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -191,7 +170,6 @@ if 'analyzed_contract' not in st.session_state:
 # ============================================================================
 
 with st.sidebar:
-    # Логотип и название
     st.markdown("""
     <div style="text-align: center; padding: 32px 20px 24px;">
         <div style="
@@ -219,23 +197,16 @@ with st.sidebar:
     
     st.divider()
     
-    # Меню
-    st.markdown("**🧭 Меню**")
+    st.markdown("**Меню**")
     menu = st.radio(
-        "Выберите раздел",
-        [
-            "💬 Чат с юристом",
-            "📄 Анализ договора",
-            "⚖️ Юридическое заключение",
-            "🔄 Сравнение версий",
-        ],
+        "Разделы",
+        ["💬 Чат", "📄 Анализ", "⚖️ Заключение", "🔄 Сравнение"],
         label_visibility="collapsed",
         index=0
     )
     
     st.divider()
     
-    # Кнопка очистки
     if st.button("🗑️ Очистить чат", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
@@ -245,6 +216,7 @@ with st.sidebar:
 # ============================================================================
 
 def render_chat():
+    # Hero секция
     st.markdown("""
     <div class="hero-section">
         <h1 class="hero-title">💬 Чат с ИИ-юристом</h1>
@@ -252,29 +224,35 @@ def render_chat():
     </div>
     """, unsafe_allow_html=True)
     
+    # Сообщения чата
     for message in st.session_state.messages:
-        with st.chat_message(message["role"]):
-            st.markdown(message["content"])
+        if message["role"] == "user":
+            st.markdown(f'<div class="chat-message-user"><strong>Вы:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="chat-message-assistant"><strong>ИИ-юрист:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
     
-    if prompt := st.chat_input("Задайте ваш юридический вопрос..."):
+    # Ввод вопроса
+    prompt = st.chat_input("Введите ваш юридический вопрос...")
+    
+    if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+        st.markdown(f'<div class="chat-message-user"><strong>Вы:</strong><br>{prompt}</div>', unsafe_allow_html=True)
         
-        with st.chat_message("assistant"):
-            with st.spinner("🤖 Анализирую вопрос..."):
-                try:
-                    from backend.llm_engine import create_llm_engine
-                    from backend.legal_kb import create_legal_kb
-                    
-                    llm = create_llm_engine()
-                    kb = create_legal_kb()
-                    context = kb.search(prompt)
-                    response = llm.generate(prompt, context=context, task="answer")
-                    st.markdown(response.text)
-                    st.session_state.messages.append({"role": "assistant", "content": response.text})
-                except Exception as e:
-                    st.error(f"❌ Ошибка: {str(e)}")
+        with st.spinner("🤖 Анализирую вопрос..."):
+            try:
+                from backend.llm_engine import create_llm_engine
+                from backend.legal_kb import create_legal_kb
+                
+                llm = create_llm_engine()
+                kb = create_legal_kb()
+                context = kb.search(prompt)
+                
+                response = llm.generate(prompt, context=context, task="answer")
+                st.markdown(f'<div class="chat-message-assistant"><strong>ИИ-юрист:</strong><br>{response.text}</div>', unsafe_allow_html=True)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
+            except Exception as e:
+                st.error(f"❌ Ошибка: {str(e)}")
 
 
 def render_analyze():
@@ -285,11 +263,11 @@ def render_analyze():
     </div>
     """, unsafe_allow_html=True)
     
-    uploaded_file = st.file_uploader(
-        "Выберите файл договора",
-        type=['pdf', 'docx', 'txt'],
-        help="Поддерживаемые форматы: PDF, DOCX, TXT"
-    )
+    # Кастомный uploader с русским текстом
+    st.markdown("### 📁 Загрузите файл договора")
+    st.markdown("*Поддерживаемые форматы: PDF, DOCX, TXT*")
+    
+    uploaded_file = st.file_uploader("", type=['pdf', 'docx', 'txt'])
     
     if uploaded_file:
         temp_path = f"temp_{uploaded_file.name}"
@@ -297,7 +275,7 @@ def render_analyze():
             f.write(uploaded_file.getvalue())
         
         st.markdown(f"""
-        <div class="glass-card">
+        <div class="info-card">
             <strong>📎 Файл:</strong> {uploaded_file.name}<br>
             <strong>📊 Размер:</strong> {uploaded_file.size / 1024:.1f} КБ
         </div>
@@ -323,21 +301,27 @@ def render_analyze():
                     if analyze_risks:
                         st.markdown("### 📊 Анализ рисков")
                         risk_prompt = f"""
-Проанализируй договор для СЗ Дело (Москва/МО).
+Ты - юрист строительной компании СЗ Дело.
+Проанализируй договор подряда для Москвы/МО.
 
-Текст:
+Текст договора:
 {contract_text[:10000]}
+
+Используй ТОЛЬКО проверенные источники:
+- Гражданский кодекс РФ (ГК РФ)
+- КонсультантПлюс
+- Гарант
 
 Формат ответа:
 ### Тип договора
 [Определение]
 
-### Риски
-1. [Риск] - [Статья ГК РФ] - [Уровень]
+### Найденные риски
+1. [Риск] - [Статья ГК РФ] - [Уровень: Критический/Высокий/Средний/Низкий]
 2. ...
 
 ### Рекомендации
-[Советы]
+[Конкретные советы]
 """
                         response = llm.generate(risk_prompt, task="answer")
                         st.markdown(response.text)
@@ -345,35 +329,33 @@ def render_analyze():
                     if fix_contract:
                         st.markdown("### ✨ Исправленная версия")
                         fix_prompt = f"""
-Исправь договор для строительной компании СЗ Дело (Москва/МО).
+Ты - опытный юрист СЗ Дело.
+Исправь договор подряда.
 
 Оригинальный текст:
 {contract_text[:10000]}
 
-Твоя задача:
-1. Найти все рискованные пункты
-2. Предложить исправленный текст
-3. Указать конкретные статьи ГК РФ
+Используй ТОЛЬКО актуальные статьи ГК РФ из КонсультантПлюс/Гарант.
 
-Формат ответа СТРОГО:
+Формат СТРОГО:
 ### Анализ
-[Кратко: тип договора, стороны, предмет]
+[Тип, стороны, предмет, цена]
 
 ### Проблемы
 1. [Пункт] - [Проблема] - [Статья ГК РФ]
 
 ### Исправленный текст
-[ПОЛНЫЙ текст договора с исправлениями]
+[ПОЛНЫЙ текст с исправлениями]
 
-### Таблица изменений
-| № | Было | Стало | Причина |
+### Таблица
+| № | Было | Стало | Статья ГК |
 """
                         response = llm.generate(fix_prompt, task="fix_contract")
                         st.markdown(response.text)
                         
-                        # Скачать TXT
+                        # TXT
                         st.download_button(
-                            label="📥 Скачать исправленный (TXT)",
+                            label="📥 Скачать TXT",
                             data=response.text.encode('utf-8'),
                             file_name=f"fixed_{uploaded_file.name}.txt",
                             mime="text/plain; charset=utf-8",
@@ -383,7 +365,6 @@ def render_analyze():
                         # PDF
                         try:
                             from fpdf import FPDF
-                            
                             pdf = FPDF()
                             pdf.add_page()
                             pdf.set_auto_page_break(auto=True, margin=15)
@@ -425,7 +406,7 @@ def render_analyze():
                             
                             with open(pdf_path, "rb") as f:
                                 st.download_button(
-                                    label="📥 Скачать исправленный (PDF)",
+                                    label="📥 Скачать PDF",
                                     data=f.read(),
                                     file_name=f"fixed_{uploaded_file.name}.pdf",
                                     mime="application/pdf",
@@ -436,7 +417,7 @@ def render_analyze():
                                 os.remove(pdf_path)
                                 
                         except Exception as pdf_error:
-                            st.warning(f"⚠️ PDF не создан: {str(pdf_error)[:200]}")
+                            st.warning(f"⚠️ PDF ошибка: {str(pdf_error)[:200]}")
                     
                 except Exception as e:
                     st.error(f"❌ Ошибка: {str(e)}")
@@ -453,11 +434,8 @@ def render_conclusion():
     </div>
     """, unsafe_allow_html=True)
     
-    uploaded_file = st.file_uploader(
-        "Выберите файл договора",
-        type=['pdf', 'docx', 'txt'],
-        help="Поддерживаемые форматы: PDF, DOCX, TXT"
-    )
+    st.markdown("### 📁 Загрузите файл договора")
+    uploaded_file = st.file_uploader("", type=['pdf', 'docx', 'txt'])
     
     if uploaded_file:
         temp_path = f"temp_{uploaded_file.name}"
@@ -475,15 +453,18 @@ def render_conclusion():
                     llm = create_llm_engine()
                     
                     prompt = f"""
-Юридическое заключение для СЗ Дело.
+Ты - юрист СЗ Дело.
+Подготовь юридическое заключение.
 
 Текст:
 {contract_text[:10000]}
 
-Формат ответа:
+Используй ТОЛЬКО актуальные законы РФ (КонсультантПлюс, Гарант).
+
+Формат:
 1. Тип договора
 2. Вывод (✅/⚠️/❌)
-3. Риски
+3. Риски со статьями ГК РФ
 4. Рекомендации
 """
                     response = llm.generate(prompt)
@@ -505,19 +486,11 @@ def render_compare():
     
     col1, col2 = st.columns(2)
     with col1:
-        file1 = st.file_uploader(
-            "Версия 1",
-            type=['pdf', 'docx', 'txt'],
-            key="v1",
-            help="Загрузите первую версию"
-        )
+        st.markdown("**Версия 1**")
+        file1 = st.file_uploader("", type=['pdf', 'docx', 'txt'], key="v1")
     with col2:
-        file2 = st.file_uploader(
-            "Версия 2",
-            type=['pdf', 'docx', 'txt'],
-            key="v2",
-            help="Загрузите вторую версию"
-        )
+        st.markdown("**Версия 2**")
+        file2 = st.file_uploader("", type=['pdf', 'docx', 'txt'], key="v2")
     
     if file1 and file2:
         temp1 = f"temp_v1_{file1.name}"
@@ -528,14 +501,14 @@ def render_compare():
         with open(temp2, "wb") as f:
             f.write(file2.getvalue())
         
-        if st.button("🔍 Сравнить версии", type="primary", use_container_width=True):
-            with st.spinner("🤖 Сравниваю версии..."):
+        if st.button("🔍 Сравнить", type="primary", use_container_width=True):
+            with st.spinner("🤖 Сравниваю..."):
                 try:
                     from backend.contract_comparator import create_comparator
                     comparator = create_comparator()
                     result = comparator.compare_and_explain(temp1, temp2)
                     
-                    st.markdown(f"### 📊 Найдено изменений: {result['total_changes']}")
+                    st.markdown(f"### 📊 Изменений: {result['total_changes']}")
                     st.components.v1.html(result['diff_html'], height=400)
                     st.markdown(result['legal_analysis'])
                 except Exception as e:
@@ -549,20 +522,15 @@ def render_compare():
 # ОСНОВНАЯ ЧАСТЬ
 # ============================================================================
 
-if menu == "💬 Чат с юристом":
+if menu == "💬 Чат":
     render_chat()
-elif menu == "📄 Анализ договора":
+elif menu == "📄 Анализ":
     render_analyze()
-elif menu == "⚖️ Юридическое заключение":
+elif menu == "⚖️ Заключение":
     render_conclusion()
-elif menu == "🔄 Сравнение версий":
+elif menu == "🔄 Сравнение":
     render_compare()
 
 # Footer
 st.divider()
-st.markdown("""
-<div style="text-align: center; color: #94a3b8; font-size: 0.85em; padding: 24px;">
-    <p style="margin: 0;">© 2025 СЗ Дело | Юридический ИИ</p>
-    <p style="margin: 8px 0 0 0;">Работает на Polza AI</p>
-</div>
-""", unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #94a3b8; font-size: 0.85em;">© 2025 СЗ Дело</p>', unsafe_allow_html=True)
