@@ -31,16 +31,42 @@ class PolzaAILLM:
     def is_available(self) -> bool:
         return bool(self.api_key)
     
-    def generate(self, messages: List[Message], context: str = "") -> LLMResponse:
+    def generate(self, user_message: str, context: str = "", history: List[Message] = None, task: str = "answer") -> LLMResponse:
         try:
-            system_prompt = """Ты - юридический консультант компании СЗ Дело.
+            if task == "fix_contract":
+                system_prompt = """Ты - опытный юрист строительной компании СЗ Дело.
+Твоя задача:
+1. Проанализировать договор подряда
+2. Найти все рискованные пункты
+3. Предложить исправленный текст с изменениями
+4. Указать КОНКРЕТНЫЕ статьи ГК РФ
+
+Формат ответа:
+### 📊 Анализ договора
+[Тип договора, стороны, предмет]
+
+### ⚠️ Найденные риски
+1. [Риск] - [Статья ГК РФ]
+2. ...
+
+### ✅ Исправленный текст договора
+[ПОЛНЫЙ текст договора с ИСПРАВЛЕНИЯМИ]
+
+### 📝 Список изменений
+| Пункт | Было | Стало | Обоснование |
+|-------|------|-------|-------------|
+| ... | ... | ... | ... |"""
+            else:
+                system_prompt = """Ты - юридический консультант компании СЗ Дело.
 Ты специализируешься на всех отраслях права РФ: ГК РФ, ТК РФ, АПК РФ, КоАП и др.
 Ты даёшь РАЗВЁРНУТЫЕ ответы минимум 500 слов.
 Ты всегда указываешь статьи законов с ссылками на КонсультантПлюс."""
             
             full_messages = [{"role": "system", "content": f"{system_prompt}\n\nКонтекст:\n{context}"}]
-            for m in messages:
-                full_messages.append({"role": m.role, "content": m.content})
+            if history:
+                for m in history:
+                    full_messages.append({"role": m.role, "content": m.content})
+            full_messages.append({"role": "user", "content": user_message})
             
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
             payload = {"model": self.model, "messages": full_messages, "temperature": 0.3, "max_tokens": 4096}
@@ -71,14 +97,40 @@ class DeepSeekLLM:
     def is_available(self) -> bool:
         return bool(self.api_key)
     
-    def generate(self, messages: List[Message], context: str = "") -> LLMResponse:
+    def generate(self, user_message: str, context: str = "", history: List[Message] = None, task: str = "answer") -> LLMResponse:
         try:
-            system_prompt = """Ты - юридический консультант компании СЗ Дело.
+            if task == "fix_contract":
+                system_prompt = """Ты - опытный юрист строительной компании СЗ Дело.
+Твоя задача:
+1. Проанализировать договор подряда
+2. Найти все рискованные пункты
+3. Предложить исправленный текст с изменениями
+4. Указать КОНКРЕТНЫЕ статьи ГК РФ
+
+Формат ответа:
+### 📊 Анализ договора
+[Тип договора, стороны, предмет]
+
+### ⚠️ Найденные риски
+1. [Риск] - [Статья ГК РФ]
+2. ...
+
+### ✅ Исправленный текст договора
+[ПОЛНЫЙ текст договора с ИСПРАВЛЕНИЯМИ]
+
+### 📝 Список изменений
+| Пункт | Было | Стало | Обоснование |
+|-------|------|-------|-------------|
+| ... | ... | ... | ... |"""
+            else:
+                system_prompt = """Ты - юридический консультант компании СЗ Дело.
 Ты специализируешься на всех отраслях права РФ."""
             
             full_messages = [{"role": "system", "content": f"{system_prompt}\n\nКонтекст:\n{context}"}]
-            for m in messages:
-                full_messages.append({"role": m.role, "content": m.content})
+            if history:
+                for m in history:
+                    full_messages.append({"role": m.role, "content": m.content})
+            full_messages.append({"role": "user", "content": user_message})
             
             headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
             payload = {"model": self.model, "messages": full_messages, "temperature": 0.3, "max_tokens": 4096}
@@ -159,15 +211,14 @@ class LLMEngine:
         if config.get("gigachat_credentials"):
             self.llms.append(GigaChat(credentials=config["gigachat_credentials"]))
     
-    def generate(self, user_message: str, context: str = "", history: List[Message] = None) -> LLMResponse:
+    def generate(self, user_message: str, context: str = "", history: List[Message] = None, task: str = "answer") -> LLMResponse:
         messages = list(history) if history else []
-        messages.append(Message(role="user", content=user_message))
         
         errors = []
         for llm in self.llms:
             if not llm.is_available():
                 continue
-            response = llm.generate(messages, context)
+            response = llm.generate(user_message, context, messages, task)
             if response.success and response.text:
                 return response
             errors.append(f"{llm.__class__.__name__}: {response.error}")
