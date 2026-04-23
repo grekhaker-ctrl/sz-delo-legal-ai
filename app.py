@@ -39,14 +39,15 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important;
     }
     
-    /* Фон приложения */
+    /* Фон приложения - профессиональный градиент */
     .stApp {
-        background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 50%, #d8dde5 100%);
     }
     
-    /* Sidebar - делаем заметнее */
+    /* Sidebar - глубокий синий с фиолетовым оттенком */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #1e3a5f 0%, #2d5a87 100%);
+        background: linear-gradient(180deg, #1a284a 0%, #253858 50%, #1e3a5f 100%) !important;
+        box-shadow: 4px 0 20px rgba(26, 40, 74, 0.3) !important;
     }
     
     [data-testid="stSidebar"] * {
@@ -74,86 +75,101 @@ st.markdown("""
         display: none !important;
     }
     
-    /* Hero секция */
+    /* Hero секция - благородный синий с золотым акцентом */
     .hero-section {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 50%, #3d7ab5 100%);
-        border-radius: 12px;
-        padding: 32px 40px;
-        margin: 20px 24px 24px 24px;
-        box-shadow: 0 8px 24px rgba(30, 58, 95, 0.3);
+        background: linear-gradient(135deg, #1a284a 0%, #25426e 40%, #2d5a87 100%);
+        border-radius: 16px;
+        padding: 36px 44px;
+        margin: 24px 28px 28px 28px;
+        box-shadow: 0 10px 30px rgba(26, 40, 74, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .hero-title {
-        font-size: 2.2em;
+        font-size: 2.3em;
         font-weight: 800;
         color: #ffffff;
-        margin: 0 0 8px 0;
+        margin: 0 0 10px 0;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
     
     .hero-subtitle {
-        font-size: 1.05em;
-        color: #bfdbfe;
+        font-size: 1.08em;
+        color: #b8cce6;
         margin: 0;
+        font-weight: 400;
     }
     
-    /* Карточки */
+    /* Карточки - чистый белый с тенью */
     .info-card {
         background: #ffffff;
-        border-radius: 10px;
-        padding: 18px;
-        margin: 16px 0;
-        border: 1px solid #bcccdc;
-        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 18px 0;
+        border: 1px solid #e8ecf1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     }
     
-    /* Кнопки */
+    /* Кнопки - насыщенный синий с золотым при наведении */
     .stButton > button {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff;
         border: none;
-        border-radius: 8px;
-        padding: 11px 26px;
+        border-radius: 10px;
+        padding: 12px 30px;
         font-weight: 600;
-        transition: all 0.25s ease;
+        font-size: 0.95em;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
     }
     
     .stButton > button:hover {
         background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
     }
     
     /* Загрузчик файлов */
     [data-testid="stFileUploader"] {
         background: #ffffff;
-        border-radius: 10px;
-        padding: 22px;
-        border: 2px dashed #7a8fa3;
+        border-radius: 12px;
+        padding: 24px;
+        border: 2px dashed #8fa5b8;
+        transition: all 0.3s ease;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: #2563eb;
+        background: #f0f5fa;
     }
     
     /* ЧАТ - ЧЁТКОЕ РАЗДЕЛЕНИЕ */
     .chat-user-message {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
         color: #ffffff;
-        padding: 15px 19px;
-        border-radius: 14px 3px 14px 14px;
-        margin: 11px 0;
+        padding: 16px 20px;
+        border-radius: 16px 4px 16px 16px;
+        margin: 12px 0;
         max-width: 75%;
         margin-left: auto;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
     }
     
     .chat-assistant-message {
         background: #ffffff;
         color: #1e293b;
-        padding: 15px 19px;
-        border-radius: 3px 14px 14px 14px;
-        margin: 11px 0;
+        padding: 16px 20px;
+        border-radius: 4px 16px 16px 16px;
+        margin: 12px 0;
         max-width: 75%;
-        border: 1px solid #bcccdc;
+        border: 1px solid #e8ecf1;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
+    /* Разделители */
     hr {
-        border-color: #bcccdc;
-        margin: 22px 0;
+        border-color: #d0d7de;
+        margin: 24px 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -181,7 +197,7 @@ st.markdown("""
         }
         return false;
     " style="
-        background: #1e3a5f;
+        background: #1a284a;
         color: white;
         border: none;
         border-radius: 8px;
@@ -259,9 +275,9 @@ with st.sidebar:
     # Ссылка на приложение
     st.divider()
     st.markdown("""
-    <div style="color: #9fb8d0; font-size: 0.8em; padding: 0 8px; line-height: 1.7;">
+    <div style="color: #b8cce6; font-size: 0.8em; padding: 0 8px; line-height: 1.7;">
         <p><strong>🌐 Ссылка:</strong></p>
-        <p style="color: #bfdbfe; word-break: break-all;">https://sz-delo-legal-ai.streamlit.app</p>
+        <p style="color: #e8f0f8; word-break: break-all;">https://sz-delo-legal-ai.streamlit.app</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -301,86 +317,6 @@ def render_chat():
                 context = kb.search(prompt)
                 
                 response = llm.generate(prompt, context=context, task="answer")
-                st.markdown(f'<div class="chat-assistant-message"><strong>ИИ-юрист:</strong><br>{response.text}</div>', unsafe_allow_html=True)
-                st.session_state.messages.append({"role": "assistant", "content": response.text})
-                
-            except Exception as e:
-                st.error(f"❌ Ошибка: {str(e)}")
-
-
-def render_chat():
-    st.markdown("""
-    <div class="hero-section">
-        <h1 class="hero-title">💬 Чат с ИИ-юристом</h1>
-        <p class="hero-subtitle">Профессиональные юридические консультации по праву РФ</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Сообщения чата
-    for message in st.session_state.messages:
-        if message["role"] == "user":
-            st.markdown(f'<div class="chat-user-message"><strong>Вы:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown(f'<div class="chat-assistant-message"><strong>ИИ-юрист:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
-    
-    # Ввод вопроса
-    prompt = st.chat_input("Введите ваш юридический вопрос...")
-    
-    if prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.markdown(f'<div class="chat-user-message"><strong>Вы:</strong><br>{prompt}</div>', unsafe_allow_html=True)
-        
-        with st.spinner("🤖 Анализирую вопрос..."):
-            try:
-                from backend.llm_engine import create_llm_engine
-                from backend.legal_kb import create_legal_kb
-                
-                llm = create_llm_engine()
-                kb = create_legal_kb()
-                context = kb.search(prompt)
-                
-                # Улучшенный промпт для чата с требованием актуальности
-                enhanced_prompt = f"""
-Ты - старший юрист СЗ Дело с 15+ лет опытом. СЕЙЧАС 2025 ГОД.
-
-Вопрос: {prompt}
-
-ТРЕБОВАНИЯ К ОТВЕТУ:
-1. ИСПОЛЬЗУЙ ТОЛЬКО АКТУАЛЬНЫЕ ЗАКОНЫ НА 2025 ГОД
-2. ДАЙ КОНКРЕТНЫЙ ОТВЕТ - не воду, не общие фразы
-3. УКАЖИ ТОЧНЫЕ НОМЕРА СТАТЕЙ (ст. XXX ГК РФ)
-4. УКАЖИ ТОЧНЫЕ СРОКИ (в днях/месяцах/годах)
-5. ПРОВЕРЬ АКТУАЛЬНОСТЬ - перед ответом убедись что закон действует в 2025
-6. ДАЙ РЕКОМЕНДАЦИИ - что конкретно делать
-7. Если вопрос по налогам - укажи % ставки и статьи НК РФ на 2025 год
-8. Если вопрос по срокам - укажи начало, окончание, последствия
-
-ОТВЕТ СТРОГО ПО ФОРМАТУ:
-### Краткий ответ
-[1-2 предложения с указанием актуальности на 2025 год]
-
-### Правовое основание
-- Статья 1: [номер] - [суть] - [актуально на 2025]
-- Статья 2: [номер] - [суть] - [актуально на 2025]
-
-### Сроки
-- [конкретные сроки если есть]
-
-### Рекомендации
-1. [что делать]
-2. [что делать]
-
-### Источник
-- КонсультантПлюс / Гарант / НК РФ (актуальная редакция 2025)
-
-ПРИМЕР ОТВЕТА ПРО НАЛОГИ:
-"Ставка НДФЛ в 2025 году:
-- 13% для доходов до 5 млн руб. в год (ст. 224 НК РФ)
-- 15% для доходов свыше 5 млн руб. в год
-Ставка НДС: 20% (ст. 164 НК РФ, без изменений с 2019)."
-"""
-                
-                response = llm.generate(enhanced_prompt, context=context, task="answer")
                 st.markdown(f'<div class="chat-assistant-message"><strong>ИИ-юрист:</strong><br>{response.text}</div>', unsafe_allow_html=True)
                 st.session_state.messages.append({"role": "assistant", "content": response.text})
                 
@@ -619,4 +555,4 @@ elif menu == "🔄 Сравнение версий":
 
 # Footer
 st.divider()
-st.markdown('<p style="text-align: center; color: #7a8fa3; font-size: 0.83em; padding: 18px;">© 2025 СЗ Дело | Юридический ИИ</p>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; color: #8fa5b8; font-size: 0.83em; padding: 18px;">© 2025 СЗ Дело | Юридический ИИ</p>', unsafe_allow_html=True)
