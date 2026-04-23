@@ -214,6 +214,57 @@ def render_chat():
                     st.error(f"Ошибка: {str(e)}")
 
 
+def render_analyze():
+    """Анализ рисков договора"""
+    st.markdown('<p class="main-header">📄 Анализ рисков договора</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subheader">Загрузите договор для анализа рисков</p>', unsafe_allow_html=True)
+    
+    uploaded_file = st.file_uploader(
+        "Загрузите договор",
+        type=['pdf', 'docx', 'txt']
+    )
+    
+    if uploaded_file:
+        temp_path = f"temp_{uploaded_file.name}"
+        with open(temp_path, "wb") as f:
+            f.write(uploaded_file.getvalue())
+        
+        if st.button("🔍 Анализировать риски", type="primary", use_container_width=True):
+            with st.spinner("Анализирую договор..."):
+                try:
+                    from backend.document_parser import create_parser
+                    from backend.llm_engine import create_llm_engine
+                    
+                    parser = create_parser()
+                    contract_text = parser.parse_file(temp_path)
+                    
+                    llm = create_llm_engine()
+                    
+                    prompt = f"""
+Проанализируй договор строительного подряда для компании СЗ Дело (Москва/МО).
+Найди все риски и проблемные места.
+
+Текст договора:
+{contract_text[:10000]}
+
+Формат ответа:
+1. Тип договора
+2. Риски (критические, высокие, средние, низкие)
+3. Рекомендации по изменениям
+4. Статьи ГК РФ
+"""
+                    
+                    response = llm.generate(prompt)
+                    
+                    st.markdown(response.text)
+                    
+                except Exception as e:
+                    st.error(f"Ошибка: {str(e)}")
+                finally:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+
+
 def render_conclusion():
     """Юридическое заключение"""
     st.markdown('<p class="main-header">⚖️ Юридическое заключение</p>', unsafe_allow_html=True)
