@@ -1,4 +1,4 @@
-"""
+""д"
 СЗ Дело | Юридический ИИ-агент
 Premium Legal AI Platform
 """
@@ -400,7 +400,7 @@ with st.sidebar:
     
     st.divider()
     
-    st.markdown("### 🧭 Меню", style={"color": "#94a3b8", "font-size": "0.9em", "font-weight": "600", "text-transform": "uppercase", "letter-spacing": "1px"})
+    st.markdown("### 🧭 Меню")
     
     menu = st.radio(
         "Разделы",
@@ -544,14 +544,39 @@ def render_analyze():
 Исправь договор для СЗ Дело.
 
 Текст:
+Исправь договор для строительной компании СЗ Дело (Москва/МО).
+
+Оригинальный текст:
 {contract_text[:10000]}
 
 Формат:
 ### 📊 Анализ
 ### ⚠️ Проблемы
 ### ✅ Исправленный текст
+Твоя задача:
+1. Найти все рискованные пункты
+2. Предложить ИСПРАВЛЕННЫЙ текст
+3. Указать конкретные статьи ГК РФ
+
+ВАЖНО - ФОРМАТ ОТВЕТА:
+Дай ответ СТРОГО в этой структуре:
+
+### 📊 Анализ договора
+[Тип договора, стороны, предмет, цена, сроки]
+
+### ⚠️ Найденные проблемы
+1. [Конкретный пункт] - [Проблема] - [Статья ГК РФ]
+2. ...
+
+### ✅ Исправленный текст договора
+[ПОЛНЫЙ текст договора с ВСЕМИ исправлениями]
+[Текст должен быть ЧЁТКО структурирован по разделам]
+
 ### 📝 Таблица изменений
 | № | Было | Стало | Почему |
+| № | Пункт | Было | Стало | Обоснование (статья ГК) |
+|---|-------|------|-------|------------------------|
+| 1 | ... | ... | ... | ... |
 """
                         response = llm.generate(fix_prompt, task="fix_contract")
                         st.markdown(response.text)
@@ -562,6 +587,78 @@ def render_analyze():
                             file_name=f"fixed_{uploaded_file.name}.txt",
                             use_container_width=True
                         )
+                        # Генерация PDF
+                        try:
+                            from fpdf import FPDF
+                            
+                            # Извлекаем исправленный текст
+                            fixed_text = response.text
+                            
+                            # Создаем PDF
+                            pdf = FPDF()
+                            pdf.add_page()
+                            pdf.set_auto_page_break(auto=True, margin=15)
+                            
+                            # Шрифты с поддержкой кириллицы
+                            font_path = "/tmp/DejaVuSans.ttf"
+                            try:
+                                # Пытаемся скачать шрифт если нет
+                                import urllib.request
+                                urllib.request.urlretrieve(
+                                    "https://github.com/dejavu-fonts/dejavu-fonts/raw/master/ttf/DejaVuSans.ttf",
+                                    font_path
+                                )
+                            except:
+                                pass
+                            
+                            if os.path.exists(font_path):
+                                pdf.add_font("DejaVu", "", font_path, uni=True)
+                                pdf.set_font("DejaVu", "", 10)
+                            else:
+                                pdf.set_font("Arial", "", 10)
+                            
+                            # Заголовок
+                            pdf.set_font_size(14)
+                            pdf.cell(0, 10, "ИСПРАВЛЕННЫЙ ДОГОВОР", ln=True, align="C")
+                            pdf.set_font_size(10)
+                            pdf.cell(0, 10, f"Оригинал: {uploaded_file.name}", ln=True, align="C")
+                            pdf.ln(10)
+                            
+                            # Текст
+                            pdf.set_font_size(10)
+                            for line in fixed_text.split("\n"):
+                                # Удаляем markdown символы
+                                clean_line = line.replace("#", "").replace("*", "").replace("-", "").strip()
+                                if clean_line:
+                                    pdf.multi_cell(0, 8, clean_line)
+                            
+                            # Сохраняем PDF
+                            pdf_path = f"fixed_{uploaded_file.name}.pdf"
+                            pdf.output(pdf_path)
+                            
+                            # Кнопка скачивания PDF
+                            with open(pdf_path, "rb") as f:
+                                st.download_button(
+                                    label="📥 Скачать исправленный (PDF)",
+                                    data=f.read(),
+                                    file_name=f"fixed_{uploaded_file.name}.pdf",
+                                    mime="application/pdf",
+                                    use_container_width=True
+                                )
+                            
+                            if os.path.exists(pdf_path):
+                                os.remove(pdf_path)
+                                
+                        except Exception as pdf_error:
+                            st.warning(f"PDF не создан: {pdf_error}")
+                            # Fallback - TXT
+                            st.download_button(
+                                label="📥 Скачать исправленный (TXT)",
+                                data=response.text,
+                                file_name=f"fixed_{uploaded_file.name}.txt",
+                                mime="text/plain",
+                                use_container_width=True
+                            )
                 except Exception as e:
                     st.error(f"Ошибка: {str(e)}")
                 finally:

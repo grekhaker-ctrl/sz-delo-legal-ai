@@ -13,3 +13,4 @@ chardet>=5.2.0
 tenacity>=8.2.3
 loguru>=0.7.2
 markdown>=3.5.0
+fpdf2>=2.7.0
