@@ -177,7 +177,7 @@ def render_chat():
                     kb = create_legal_kb()
                     
                     # Поиск контекста в базе знаний
-                    context = kb.search(prompt, sources=['local'])
+                    context = kb.search(prompt)
                     
                     # Генерация ответа
                     response = llm.generate(prompt, context=context)
