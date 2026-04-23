@@ -194,28 +194,6 @@ def render_chat():
                     st.error(f"Ошибка: {str(e)}")
 
 
-# После анализа рисков добавьте ИИ-заключение
-st.markdown("### 🤖 ИИ-анализ договора")
-with st.spinner("ИИ готовит заключение..."):
-    llm = create_llm_engine()
-    llm_prompt = f"""Дай развёрнутое юридическое заключение по договору для СЗ Дело (Москва/МО).
-
-Найденные риски:
-{[f'{r.title}: {r.description}' for r in risks]}
-
-Текст договора (фрагмент):
-{contract_text[:5000]}
-
-Проанализируй:
-1. Тип договора
-2. Ключевые риски для СЗ Дело
-3. Рекомендации по изменениям
-4. Статьи ГК РФ
-
-Дай конкретные рекомендации!"""
-    llm_response = llm.generate(llm_prompt)
-    st.markdown(llm_response.text)
-
 def render_conclusion():
     """Юридическое заключение"""
     st.markdown('<p class="main-header">⚖️ Юридическое заключение</p>', unsafe_allow_html=True)
