@@ -308,6 +308,78 @@ def render_chat():
                 st.error(f"❌ Ошибка: {str(e)}")
 
 
+def render_chat():
+    st.markdown("""
+    <div class="hero-section">
+        <h1 class="hero-title">💬 Чат с ИИ-юристом</h1>
+        <p class="hero-subtitle">Профессиональные юридические консультации по праву РФ</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Сообщения чата
+    for message in st.session_state.messages:
+        if message["role"] == "user":
+            st.markdown(f'<div class="chat-user-message"><strong>Вы:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="chat-assistant-message"><strong>ИИ-юрист:</strong><br>{message["content"]}</div>', unsafe_allow_html=True)
+    
+    # Ввод вопроса
+    prompt = st.chat_input("Введите ваш юридический вопрос...")
+    
+    if prompt:
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        st.markdown(f'<div class="chat-user-message"><strong>Вы:</strong><br>{prompt}</div>', unsafe_allow_html=True)
+        
+        with st.spinner("🤖 Анализирую вопрос..."):
+            try:
+                from backend.llm_engine import create_llm_engine
+                from backend.legal_kb import create_legal_kb
+                
+                llm = create_llm_engine()
+                kb = create_legal_kb()
+                context = kb.search(prompt)
+                
+                # Улучшенный промпт для чата
+                enhanced_prompt = f"""
+Ты - старший юрист СЗ Дело с 15+ лет опытом. Отвечай на вопрос ОЧЕНЬ КОНКРЕТНО.
+
+Вопрос: {prompt}
+
+ТРЕБОВАНИЯ К ОТВЕТУ:
+1. ДАЙ КОНКРЕТНЫЙ ОТВЕТ - не воду, не общие фразы
+2. УКАЖИ ТОЧНЫЕ НОМЕРА СТАТЕЙ (ст. XXX ГК РФ)
+3. УКАЖИ ТОЧНЫЕ СРОКИ (в днях/месяцах/годах)
+4. ДАЙ РЕКОМЕНДАЦИИ - что конкретно делать
+5. Если вопрос по налогам - укажи % ставки и статьи НК РФ
+6. Если вопрос по срокам - укажи начало, окончание, последствия
+
+ОТВЕТ СТРОГО ПО ФОРМАТУ:
+### Краткий ответ
+[1-2 предложения]
+
+### Правовое основание
+- Статья 1: [номер] - [суть]
+- Статья 2: [номер] - [суть]
+
+### Сроки
+- [конкретные сроки если есть]
+
+### Рекомендации
+1. [что делать]
+2. [что делать]
+
+### Источник
+- КонсультантПлюс / Гарант / НК РФ
+"""
+                
+                response = llm.generate(enhanced_prompt, context=context, task="answer")
+                st.markdown(f'<div class="chat-assistant-message"><strong>ИИ-юрист:</strong><br>{response.text}</div>', unsafe_allow_html=True)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
+                
+            except Exception as e:
+                st.error(f"❌ Ошибка: {str(e)}")
+
+
 def render_analyze():
     st.markdown("""
     <div class="hero-section">
@@ -353,29 +425,35 @@ def render_analyze():
                     if analyze_risks:
                         st.markdown("### 📊 Анализ рисков")
                         risk_prompt = f"""
-Ты - опытный юрист строительной компании СЗ Дело (Москва/МО).
+Ты - старший юрист СЗ Дело с 15+ лет опытом.
 
-ТРЕБОВАНИЯ:
-1. ТОЛЬКО актуальные законы РФ (2024-2025)
-2. Проверяй: КонсультантПлюс, Гарант, vsrf.ru
-3. НЕ выдумывай статьи
-4. Указывай точные номера статей
-
-Текст:
+Текст договора:
 {contract_text[:10000]}
 
-ФОРМАТ:
-### Тип договора
-[Определение]
+ТРЕБОВАНИЯ:
+1. ДАВАЙ КОНКРЕТНЫЕ ОТВЕТЫ - не воду
+2. УКАЗЫВАЙ ТОЧНЫЕ НОМЕРА СТАТЕЙ ГК РФ
+3. УКАЗЫВАЙ ТОЧНЫЕ СРОКИ И ПЕРИОДЫ
+4. НЕ ВЫДУМЫВАЙ - проверяй по КонсультантПлюс, Гарант
 
-### Риски
-1. [Пункт] - [Статья ГК РФ] - [Уровень]
+ФОРМАТ ОТВЕТА СТРОГО:
+### Тип договора
+[Определение по ГК РФ]
+
+### Найденные риски
+1. [Конкретный пункт] - [Статья ГК РФ с номером] - [Уровень риска: Критичный/Высокий/Средний/Низкий]
+2. ...
+
+### Сроки
+- [Конкретные сроки: начало, окончание, последствия просрочки]
 
 ### Рекомендации
+1. [Конкретное действие]
+2. [Конкретное действие]
 """
                         response = llm.generate(risk_prompt, task="answer")
                         st.markdown(response.text)
-                    
+                        
                     if fix_contract:
                         st.markdown("### ✨ Исправленная версия")
                         fix_prompt = f"""
@@ -441,21 +519,23 @@ def render_conclusion():
                     llm = create_llm_engine()
                     
                     prompt = f"""
-Ты - юрист СЗ Дело.
-
-ТРЕБОВАНИЯ:
-1. ТОЛЬКО актуальные законы РФ
-2. Проверяй: КонсультантПлюс, Гарант
-3. НЕ выдумывай статьи
+Ты - старший юрист СЗ Дело с 15+ лет опытом.
 
 Текст:
 {contract_text[:10000]}
 
-ФОРМАТ:
+ТРЕБОВАНИЯ:
+1. ДАВАЙ КОНКРЕТНЫЕ ОТВЕТЫ
+2. УКАЗЫВАЙ ТОЧНЫЕ НОМЕРА СТАТЕЙ ГК РФ
+3. УКАЗЫВАЙ ТОЧНЫЕ СРОКИ И ПЕРИОДЫ
+4. НЕ ВЫДУМЫВАЙ - проверяй по КонсультантПлюс, Гарант
+
+ФОРМАТ ОТВЕТА СТРОГО:
 1. Тип договора
-2. Вывод (✅/⚠️/❌)
-3. Риски
-4. Рекомендации
+2. Вывод (✅/⚠️/❌) с обоснованием
+3. Риски со статьями ГК РФ
+4. Конкретные рекомендации
+5. Сроки и последствия
 """
                     response = llm.generate(prompt)
                     st.markdown(response.text)
